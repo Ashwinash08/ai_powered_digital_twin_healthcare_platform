@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .patient-card {
+        background: var(--surface-color);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        padding: 1.6rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        cursor: pointer;
+        box-shadow: var(--shadow-sm);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .patient-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--border-hover);
+    }
+
+    .patient-card.emergency-card {
+        border-color: #f87171;
+        background: var(--surface-color);
+    }
+
+    .patient-card-avatar {
+        width: 52px;
+        height: 52px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #2563eb, #7c3aed);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.35rem;
+        font-weight: 700;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+        flex-shrink: 0;
+    }
+
+    .patient-card-avatar.emergency-avatar {
+        background: linear-gradient(135deg, #dc2626, #ea580c);
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.35);
+    }
+
+    .patient-info-box {
+        background: var(--surface-muted);
+        padding: 1rem 1.1rem;
+        border-radius: 14px;
+        margin: 1.25rem 0;
+        border: 1px solid var(--border-color);
+        font-size: 0.85rem;
+    }
+
+    .search-bar-wrap {
+        background: var(--surface-color);
+        border: 1.5px solid var(--border-color);
+        border-radius: 30px;
+        display: flex;
+        align-items: center;
+        padding: 0.2rem 0.2rem 0.2rem 1rem;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.2s ease;
+    }
+
+    .search-bar-wrap:focus-within {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .task-bar-panel {
+        background: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 1rem 1.5rem;
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+</style>
+
+<!-- Task Context Switcher & Dynamic Permission Engine Bar -->
+<div class="task-bar-panel">
+    <div style="display: flex; align-items: center; gap: 0.85rem;">
+        <div style="width: 40px; height: 40px; border-radius: 10px; background: #2563eb; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; box-shadow: 0 4px 10px rgba(37,99,235,0.25);">
+            ⚡
+        </div>
+        <div>
+            <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-color);">
+                Dynamic Permission Engine: <span style="color: var(--primary-color);">{{ current_task_label }}</span>
+            </div>
+            <div style="font-size: 0.78rem; color: var(--text-secondary);">
+                {% if current_task_context == 'clinical_research' %}
+                    Protected Health Information is de-identified under HIPAA Safe-Harbor guidelines.
+                {% elif current_task_context == 'peer_review' %}
+                    Partial masking active for unbiased clinical consultation and peer consensus.
+                {% else %}
+                    Full clinical EHR unmasking active for attending physician.
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('doctor_set_task_context') }}" style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+        <input type="hidden" name="next_url" value="{{ request.url }}">
+        <label style="font-size: 0.82rem; font-weight: 700; color: var(--text-secondary);">Switch Task:</label>
+        <select name="task_context" onchange="this.form.submit()" style="font-size: 0.85rem; font-weight: 600; padding: 0.4rem 0.8rem; border-radius: 10px; border: 1.5px solid var(--border-color); background: var(--surface-color); color: var(--text-color); cursor: pointer;">
+            <option value="routine_care" {{ 'selected' if current_task_context == 'routine_care' else '' }}>🏥 Routine Care (Full PHI)</option>
+            <option value="emergency_triage" {{ 'selected' if current_task_context == 'emergency_triage' else '' }}>🚨 Emergency Clinical Triage</option>
+            <option value="clinical_research" {{ 'selected' if current_task_context == 'clinical_research' else '' }}>🔬 AI Research (Safe-Harbor)</option>
+            <option value="peer_review" {{ 'selected' if current_task_context == 'peer_review' else '' }}>👥 Blind Peer Review</option>
+        </select>
+    </form>
+</div>
+
+<div class="dashboard-header" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.35rem;">
+            <h1 style="margin: 0; font-size: 1.85rem; font-weight: 700; color: var(--text-color);">Patient Management</h1>
+            <span class="badge" style="background: var(--badge-blue-bg); color: var(--primary-color); border: 1px solid var(--badge-blue-border); font-size: 0.75rem; padding: 0.25rem 0.65rem; border-radius: 20px; font-weight: 600;">
+                {{ patients | length }} Cohort Members
+            </span>
+        </div>
+        <p style="color: var(--text-secondary); margin: 0; font-size: 0.95rem;">Monitor real-time Digital Twins, review clinical trajectories, and initiate secure emergency break-glass sessions.</p>
+    </div>
+    
+    <form method="GET" style="width: 380px;">
+        <div class="search-bar-wrap">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.5rem; flex-shrink: 0; color: var(--text-secondary);"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" name="search" placeholder="Search by name, ID, or email..." value="{{ search }}" style="width: 100%; border: none; outline: none; background: transparent; font-size: 0.9rem; color: var(--text-color);">
+            <button type="submit" class="btn btn-primary" style="border-radius: 25px; padding: 0.45rem 1.15rem; font-size: 0.85rem; font-weight: 600;">Search</button>
+        </div>
+    </form>
+</div>
+
+<div class="grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.5rem;">
+    {% for patient in patients %}
+    <div class="patient-card {{ 'emergency-card' if patient.has_emergency_access else '' }}" onclick="window.location.href='{{ url_for('doctor_patient_detail', patient_id=patient.id) }}'">
+        
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div style="display: flex; gap: 0.85rem; align-items: center;">
+                <div class="patient-card-avatar {{ 'emergency-avatar' if patient.has_emergency_access else '' }}">
+                    {{ patient.name[0] | upper }}
+                </div>
+                <div>
+                    <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700; color: var(--text-color);">
+                        {{ patient.display_name if patient.display_name else patient.name }}
+                    </h3>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.15rem;">
+                        #PT-{{ patient.id }}-2026 &bull; {{ patient.display_dob if patient.display_dob else (patient.dob or 'Age: ~34') }}
+                    </div>
+                </div>
+            </div>
+            
+            <div>
+                {% if patient.has_emergency_access %}
+                    <span class="badge" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 0.25rem 0.6rem; border-radius: 20px; font-weight: 700; font-size: 0.72rem; display: flex; align-items: center; gap: 0.3rem;">
+                        🚨 BREAK-GLASS
+                    </span>
+                {% elif patient.is_masked %}
+                    <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); padding: 0.25rem 0.6rem; border-radius: 20px; font-weight: 600; font-size: 0.72rem; display: flex; align-items: center; gap: 0.3rem;" title="Data masked for current task context">
+                        🛡️ MASKED
+                    </span>
+                {% else %}
+                    <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 0.25rem 0.6rem; border-radius: 20px; font-weight: 700; font-size: 0.72rem; display: flex; align-items: center; gap: 0.3rem;">
+                        <span style="width: 6px; height: 6px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+                        AUTHORIZED
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="patient-info-box">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color);">
+                <div>
+                    <div style="color: var(--text-secondary); font-size: 0.7rem; text-transform: uppercase; font-weight: 600;">Blood Group</div>
+                    <div style="font-weight: 700; color: #ef4444; font-size: 0.9rem; margin-top: 0.1rem;">{{ patient.blood_group or 'O+' }}</div>
+                </div>
+                <div>
+                    <div style="color: var(--text-secondary); font-size: 0.7rem; text-transform: uppercase; font-weight: 600;">Contact Privacy</div>
+                    <div style="font-weight: 600; color: var(--text-color); font-size: 0.78rem; margin-top: 0.1rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        {{ patient.display_email if patient.display_email else patient.email }}
+                    </div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 0.75rem;">
+                <div style="color: var(--text-secondary); font-size: 0.7rem; text-transform: uppercase; font-weight: 600; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.35rem;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="12 8 8 12 12 16 12 8"/></svg>
+                    Clinical Status & Trajectory
+                </div>
+                <div style="color: var(--text-color); font-size: 0.82rem; line-height: 1.45;">
+                    {{ patient.display_history if patient.display_history else 'Active treatment plan. Stable ambulatory blood pressure and telemetry sync.' }}
+                </div>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 0.5rem;" onclick="event.stopPropagation();">
+            <a href="{{ url_for('doctor_patient_detail', patient_id=patient.id) }}" class="btn btn-primary" style="flex: 1; text-align: center; font-size: 0.85rem; font-weight: 600; padding: 0.6rem; border-radius: 10px;">
+                Open Clinical Profile ➔
+            </a>
+            <a href="{{ url_for('doctor_twin', patient_id=patient.id) }}" class="btn btn-outline" style="background: var(--surface-color); color: var(--text-color); border: 1px solid var(--border-color); font-size: 0.85rem; font-weight: 600; padding: 0.6rem 0.9rem; border-radius: 10px;" title="View Digital Twin">
+                Twin
+            </a>
+        </div>
+    </div>
+    {% else %}
+    <div class="glass-panel" style="grid-column: 1 / -1; padding: 3.5rem 2rem; text-align: center; border-radius: 20px;">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="1.5" style="margin-bottom: 1rem;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+        <h3 style="color: var(--text-color); margin-bottom: 0.5rem; font-weight: 700;">No Patients Found</h3>
+        <p style="color: var(--text-secondary); max-width: 400px; margin: 0 auto;">No matching patients found for your search query. Try searching with different keywords.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,426 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="dashboard-header" style="margin-bottom: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h1 style="margin: 0 0 0.35rem 0; font-size: 1.85rem; font-weight: 800; letter-spacing: -0.5px;">AI Health Risk & Disease Prediction</h1>
+            <p style="color: var(--text-secondary); margin: 0; font-size: 0.92rem;">Multi-Agent predictive modeling and clinical anomaly detection across continuous IoT and diagnostic streams.</p>
+        </div>
+        <span class="badge badge-blue">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            Model Confidence: 94.8% AUC-ROC
+        </span>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1.1fr 1.9fr; gap: 2rem; margin-bottom: 2rem;">
+    
+    <!-- Left: Risk Score Gauge & Early Warning Alerts -->
+    <div style="display: flex; flex-direction: column; gap: 1.75rem;">
+        
+        <!-- Risk Score Gauge -->
+        <div class="glass-panel" style="padding: 2rem; border-radius: 20px; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+            <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.65rem;">
+                <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700;">Composite Health Risk Index</h3>
+                <span class="badge badge-amber">Low-Moderate</span>
+            </div>
+            
+            <div style="position: relative; width: 160px; height: 160px; display: flex; justify-content: center; align-items: center; margin: 0.5rem 0;">
+                <svg width="160" height="160" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="42" fill="none" stroke="var(--border-color)" stroke-width="8"></circle>
+                    <circle cx="50" cy="50" r="42" fill="none" stroke="#eab308" stroke-width="8" stroke-dasharray="264" stroke-dashoffset="185" stroke-linecap="round" transform="rotate(-90 50 50)" style="transition: stroke-dashoffset 1.5s ease-out;"></circle>
+                </svg>
+                <div style="position: absolute; text-align: center;">
+                    <div style="font-size: 2.6rem; font-weight: 800; color: var(--heading-color); line-height: 1;">28<span style="font-size: 1.1rem; color: var(--text-muted);">%</span></div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-top: 0.25rem;">Risk Stratum</div>
+                </div>
+            </div>
+            
+            <p style="margin: 0.75rem 0 0 0; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.45;">
+                Overall longitudinal risk is classified as <strong>Low-to-Moderate</strong>. Cardiovascular parameters are well stabilized under existing Lisinopril therapy.
+            </p>
+        </div>
+
+        <!-- Early Warning Detection -->
+        <div class="glass-panel" style="padding: 1.75rem; border-radius: 20px; border-left: 4px solid #ef4444; background: var(--alert-warning-bg);">
+            <h3 style="color: #ef4444; margin: 0 0 1rem 0; display: flex; align-items: center; gap: 0.5rem; font-size: 1.05rem; font-weight: 700;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                Early Warning Anomaly Triggers
+            </h3>
+            
+            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <div class="profile-info-box" style="border-radius: 12px; padding: 0.85rem 1rem;">
+                    <div style="font-weight: 700; color: var(--text-color); font-size: 0.88rem;">Evening Systolic BP Variations</div>
+                    <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 0.25rem 0 0 0; line-height: 1.4;">Multi-agent correlation detects mild +8 mmHg systolic elevations when dinner sodium exceeds 2,200 mg.</p>
+                </div>
+                
+                <div class="profile-info-box" style="border-radius: 12px; padding: 0.85rem 1rem;">
+                    <div style="font-weight: 700; color: var(--text-color); font-size: 0.88rem;">Optimal HDL/LDL Ratio Target</div>
+                    <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 0.25rem 0 0 0; line-height: 1.4;">Recent lipid panel shows HDL at 48 mg/dL. 15 min daily zone-2 walking recommended to reach 55+ mg/dL.</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Right: Disease Risk Breakdown & Forecast Chart -->
+    <div style="display: flex; flex-direction: column; gap: 1.75rem;">
+        
+        <!-- Disease Risk Breakdown Cards -->
+        <div class="glass-panel" style="padding: 2rem; border-radius: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.65rem;">
+                <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700;">Individual Disease Risk Probability</h3>
+                <span class="badge badge-blue">14,000+ Telemetry Points</span>
+            </div>
+            
+            <!-- Disease 1: Hypertension -->
+            <div style="margin-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                    <span style="font-weight: 700; color: var(--text-color); font-size: 0.92rem;">Cardiovascular / Hypertension</span>
+                    <span class="badge badge-amber">Moderate (32%)</span>
+                </div>
+                <div style="width: 100%; height: 8px; background: var(--border-color); border-radius: 6px; overflow: hidden; margin-bottom: 0.65rem;">
+                    <div style="width: 32%; height: 100%; background: #eab308; border-radius: 6px;"></div>
+                </div>
+                <div class="profile-info-box" style="border-radius: 10px; padding: 0.75rem 1rem; font-size: 0.8rem; color: var(--text-secondary);">
+                    <strong style="color: var(--primary-color);">Contributing Factors:</strong> Pre-hypertension clinical diagnosis; mitigated by current Lisinopril 10mg compliance and stable resting heart rate.
+                </div>
+            </div>
+
+            <!-- Disease 2: Type 2 Diabetes -->
+            <div style="margin-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                    <span style="font-weight: 700; color: var(--text-color); font-size: 0.92rem;">Type-2 Diabetes Mellitus</span>
+                    <span class="badge badge-green">Low Risk (11%)</span>
+                </div>
+                <div style="width: 100%; height: 8px; background: var(--border-color); border-radius: 6px; overflow: hidden; margin-bottom: 0.65rem;">
+                    <div style="width: 11%; height: 100%; background: #10b981; border-radius: 6px;"></div>
+                </div>
+                <div class="profile-info-box" style="border-radius: 10px; padding: 0.75rem 1rem; font-size: 0.8rem; color: var(--text-secondary);">
+                    <strong style="color: #10b981;">Protective Factors:</strong> Fasting blood glucose (92 mg/dL) and HbA1c (5.4%) are within optimal clinical bounds.
+                </div>
+            </div>
+
+            <!-- Disease 3: Dyslipidemia -->
+            <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                    <span style="font-weight: 700; color: var(--text-color); font-size: 0.92rem;">Dyslipidemia & Atherosclerosis Index</span>
+                    <span class="badge badge-blue">Controlled (18%)</span>
+                </div>
+                <div style="width: 100%; height: 8px; background: var(--border-color); border-radius: 6px; overflow: hidden; margin-bottom: 0.65rem;">
+                    <div style="width: 18%; height: 100%; background: #2563eb; border-radius: 6px;"></div>
+                </div>
+                <div class="profile-info-box" style="border-radius: 10px; padding: 0.75rem 1rem; font-size: 0.8rem; color: var(--text-secondary);">
+                    <strong style="color: var(--primary-color);">Intervention Target:</strong> Atorvastatin 20mg daily maintains LDL < 100 mg/dL target.
+                </div>
+            </div>
+        </div>
+
+        <!-- 6-Month Predictive Health Risk Forecast Chart -->
+        <div class="glass-panel" style="padding: 2rem; border-radius: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                <div>
+                    <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700;">6-Month Longitudinal Risk Forecast</h3>
+                    <p style="margin: 0.2rem 0 0 0; color: var(--text-secondary); font-size: 0.8rem;">Comparing current baseline trajectory vs AI-guided intervention trajectory</p>
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <span class="badge badge-red">Without Intervention</span>
+                    <span class="badge badge-green">With Multi-Agent Care</span>
+                </div>
+            </div>
+            <div style="height: 240px; position: relative;">
+                <canvas id="predictionChart"></canvas>
+            </div>
+        </div>
+        
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- NEXT-GEN PATIENT BIOMARKER & ADHERENCE TWIN -->
+<!-- ========================================== -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+    
+    <!-- 1. Voice Biomarker & Respiratory Cough Screener -->
+    <div class="glass-panel" style="padding: 2rem; border-radius: 20px; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                <div style="display: flex; align-items: center; gap: 0.6rem;">
+                    <div style="width: 38px; height: 38px; border-radius: 10px; background: var(--badge-blue-bg); color: var(--primary-color); display: flex; align-items: center; justify-content: center;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                    </div>
+                    <div>
+                        <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700;">Acoustic Voice & Cough Biomarker Screener</h3>
+                        <p style="margin: 0.15rem 0 0 0; color: var(--text-secondary); font-size: 0.78rem;">AI acoustic agent analyzes vocal shimmer, jitter, and cough spectrogram for early pulmonary distress.</p>
+                    </div>
+                </div>
+                <span id="voiceBadge" class="badge" style="background: var(--surface-muted); color: var(--text-muted); font-size: 0.72rem;">Standby</span>
+            </div>
+
+            <!-- Waveform Canvas -->
+            <div style="background: #0f172a; border-radius: 12px; height: 90px; padding: 0.5rem; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; border: 1px solid var(--border-color);">
+                <canvas id="waveformCanvas" width="400" height="80" style="width: 100%; height: 100%;"></canvas>
+                <div id="waveformOverlay" style="position: absolute; color: #94a3b8; font-size: 0.75rem; font-family: monospace;">Press button to record 4-second vocal/cough sample</div>
+            </div>
+
+            <!-- Biomarker Result Stream -->
+            <div id="voiceResultBox" class="profile-info-box" style="display: none; border-radius: 12px; padding: 1rem; margin-bottom: 1rem;">
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; text-align: center; margin-bottom: 0.5rem;">
+                    <div style="background: var(--surface-color); padding: 0.4rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <div style="font-size: 0.68rem; color: var(--text-muted);">Acoustic Score</div>
+                        <div id="resAcousticScore" style="font-weight: 800; color: #10b981; font-size: 1.1rem;">92/100</div>
+                    </div>
+                    <div style="background: var(--surface-color); padding: 0.4rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <div style="font-size: 0.68rem; color: var(--text-muted);">Vocal Jitter</div>
+                        <div id="resJitter" style="font-weight: 800; color: var(--text-color); font-size: 1.1rem;">0.58%</div>
+                    </div>
+                    <div style="background: var(--surface-color); padding: 0.4rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <div style="font-size: 0.68rem; color: var(--text-muted);">Harmonics HNR</div>
+                        <div id="resHnr" style="font-weight: 800; color: var(--primary-color); font-size: 1.1rem;">24.2 dB</div>
+                    </div>
+                </div>
+                <div id="resVoiceText" style="font-size: 0.78rem; color: var(--text-secondary); line-height: 1.4;">
+                    Normal resonance pattern detected. Low probability of bronchial obstruction.
+                </div>
+            </div>
+        </div>
+
+        <button id="btnStartVoice" onclick="runVoiceBiomarker()" class="btn btn-primary" style="width: 100%; border-radius: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+            Record Vocal Sample & Cough
+        </button>
+    </div>
+
+    <!-- 2. Computer Vision Smart Pillbox & Adherence Twin -->
+    <div class="glass-panel" style="padding: 2rem; border-radius: 20px; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                <div style="display: flex; align-items: center; gap: 0.6rem;">
+                    <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(192, 38, 211, 0.15); color: #c026d3; display: flex; align-items: center; justify-content: center;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg>
+                    </div>
+                    <div>
+                        <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700;">CV Smart Pillbox & Adherence Twin</h3>
+                        <p style="margin: 0.15rem 0 0 0; color: var(--text-secondary); font-size: 0.78rem;">Vision agent validates dosage geometry, counts adherence, and catches self-prescribed drug conflicts.</p>
+                    </div>
+                </div>
+                <span id="cvAdherenceBadge" class="badge badge-green" style="font-size: 0.72rem;">94% Adherent</span>
+            </div>
+
+            <!-- Interactive Pillbox Selector Simulation -->
+            <div style="display: flex; gap: 0.5rem; margin-bottom: 0.85rem;">
+                <button onclick="scanPillbox('daily_organizer')" class="btn btn-outline" style="flex: 1; font-size: 0.78rem; padding: 0.4rem;">Scan Morning Tray</button>
+                <button onclick="scanPillbox('conflict_detected')" class="btn btn-outline" style="flex: 1; font-size: 0.78rem; padding: 0.4rem; border-color: rgba(239, 68, 68, 0.4); color: #ef4444;">Simulate Drug Conflict</button>
+            </div>
+
+            <!-- Pill Recognition List -->
+            <div id="pillboxContainer" class="profile-info-box" style="border-radius: 12px; padding: 0.85rem 1rem; margin-bottom: 1rem; min-height: 110px;">
+                <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; margin-bottom: 0.4rem;">Detected Ingestion Queue</div>
+                <div id="pillList" style="display: flex; flex-direction: column; gap: 0.4rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; background: var(--surface-color); padding: 0.45rem 0.75rem; border-radius: 8px; border: 1px solid var(--border-color); color: var(--text-color);">
+                        <span>🟡 <strong>Lisinopril 10mg</strong> (Round)</span>
+                        <span class="badge badge-green" style="font-size: 0.7rem;">Verified Morning</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; background: var(--surface-color); padding: 0.45rem 0.75rem; border-radius: 8px; border: 1px solid var(--border-color); color: var(--text-color);">
+                        <span>⚪ <strong>Atorvastatin 20mg</strong> (Oval)</span>
+                        <span class="badge badge-blue" style="font-size: 0.7rem;">Evening Target</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-info-box" style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: var(--text-secondary); padding: 0.5rem 0.85rem; border-radius: 8px;">
+            <span>Digital Twin Adherence Impact:</span>
+            <strong id="adherenceImpact" style="color: #10b981;">+3 Twin Points</strong>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function isDarkMode() {
+        return document.documentElement.getAttribute('data-theme') !== 'light';
+    }
+
+    const pCtx = document.getElementById('predictionChart').getContext('2d');
+    const predictionChart = new Chart(pCtx, {
+        type: 'line',
+        data: {
+            labels: ['Now', 'M+1', 'M+2', 'M+3', 'M+4', 'M+5', 'M+6'],
+            datasets: [
+                {
+                    label: 'Unmanaged Baseline Risk %',
+                    data: [28, 32, 35, 39, 43, 47, 51],
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.05)',
+                    borderWidth: 2.5,
+                    borderDash: [5, 5],
+                    fill: false,
+                    tension: 0.35,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#ef4444'
+                },
+                {
+                    label: 'With AI-Guided Care %',
+                    data: [28, 26, 24, 21, 19, 18, 16],
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                    borderWidth: 2.5,
+                    fill: true,
+                    tension: 0.35,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#10b981'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(15, 23, 42, 0.92)',
+                    titleColor: '#ffffff',
+                    bodyColor: '#f1f5f9',
+                    padding: 10,
+                    cornerRadius: 8,
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.dataset.label}: ${context.parsed.y}%`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    min: 10,
+                    max: 60,
+                    grid: { color: isDarkMode() ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)' },
+                    ticks: {
+                        color: isDarkMode() ? '#94a3b8' : '#64748b',
+                        callback: function(v) { return v + '%'; },
+                        font: { family: "'Plus Jakarta Sans', sans-serif", size: 11 }
+                    }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { 
+                        color: isDarkMode() ? '#94a3b8' : '#64748b',
+                        font: { family: "'Plus Jakarta Sans', sans-serif", size: 11 } 
+                    }
+                }
+            }
+        }
+    });
+
+    window.addEventListener('themechanged', function() {
+        const dark = isDarkMode();
+        predictionChart.options.scales.y.grid.color = dark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)';
+        predictionChart.options.scales.y.ticks.color = dark ? '#94a3b8' : '#64748b';
+        predictionChart.options.scales.x.ticks.color = dark ? '#94a3b8' : '#64748b';
+        predictionChart.update();
+    });
+
+    // Voice Biomarker Screener Simulation
+    let waveAnimId = null;
+    function runVoiceBiomarker() {
+        const btn = document.getElementById('btnStartVoice');
+        const badge = document.getElementById('voiceBadge');
+        const overlay = document.getElementById('waveformOverlay');
+        const resultBox = document.getElementById('voiceResultBox');
+        const canvas = document.getElementById('waveformCanvas');
+        const ctx = canvas.getContext('2d');
+
+        btn.disabled = true;
+        btn.innerText = "Analyzing Acoustic Waveform...";
+        badge.innerText = "Listening...";
+        badge.className = "badge badge-red";
+        overlay.style.display = "none";
+
+        let phase = 0;
+        function drawWave() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            
+            for (let x = 0; x < canvas.width; x++) {
+                const y = canvas.height / 2 + Math.sin(x * 0.05 + phase) * Math.sin(x * 0.02) * 28 * Math.sin(phase * 0.5);
+                if (x === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            phase += 0.15;
+            waveAnimId = requestAnimationFrame(drawWave);
+        }
+        drawWave();
+
+        fetch('/api/voice_biomarker/analyze', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({duration: 4})
+        })
+        .then(res => res.json())
+        .then(data => {
+            setTimeout(() => {
+                cancelAnimationFrame(waveAnimId);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                btn.disabled = false;
+                btn.innerText = "Re-record Sample";
+                badge.innerText = data.status;
+                badge.className = data.acoustic_score >= 85 ? "badge badge-green" : "badge badge-amber";
+
+                resultBox.style.display = "block";
+                document.getElementById('resAcousticScore').innerText = `${data.acoustic_score}/100`;
+                document.getElementById('resJitter').innerText = `${data.jitter_percent}%`;
+                document.getElementById('resHnr').innerText = `${data.hnr_db} dB`;
+                document.getElementById('resVoiceText').innerText = `${data.recommendation} (Detected ${data.cough_bursts_detected} acoustic cough bursts).`;
+            }, 2500);
+        })
+        .catch(err => {
+            cancelAnimationFrame(waveAnimId);
+            btn.disabled = false;
+            btn.innerText = "Record Sample";
+        });
+    }
+
+    // CV Smart Pillbox Scanner Simulation
+    function scanPillbox(preset) {
+        fetch('/api/cv_pillbox/scan', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({preset: preset})
+        })
+        .then(res => res.json())
+        .then(data => {
+            const listEl = document.getElementById('pillList');
+            listEl.innerHTML = '';
+            
+            data.detected_pills.forEach(p => {
+                const item = document.createElement('div');
+                item.style.cssText = "display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; background: var(--surface-color); padding: 0.45rem 0.75rem; border-radius: 8px; border: 1px solid var(--border-color); color: var(--text-color);";
+                const badgeClass = p.status === 'Taken' ? 'badge-green' : (p.status === 'Flagged' ? 'badge-red' : 'badge-blue');
+                item.innerHTML = `<span><strong>${p.name}</strong> (${p.shape})</span><span class="badge ${badgeClass}" style="font-size: 0.7rem;">${p.status} - ${p.timing}</span>`;
+                listEl.appendChild(item);
+            });
+
+            if (data.conflict_warning) {
+                const warn = document.createElement('div');
+                warn.style.cssText = "font-size: 0.75rem; color: #ef4444; background: var(--alert-warning-bg); border: 1px solid rgba(239, 68, 68, 0.4); padding: 0.4rem 0.6rem; border-radius: 6px; margin-top: 0.3rem;";
+                warn.innerText = `⚠️ ${data.conflict_warning}`;
+                listEl.appendChild(warn);
+            }
+
+            document.getElementById('cvAdherenceBadge').innerText = `${data.adherence_rate}% Adherent`;
+            document.getElementById('cvAdherenceBadge').className = data.adherence_rate > 90 ? "badge badge-green" : "badge badge-red";
+            document.getElementById('adherenceImpact').innerText = data.twin_score_impact;
+            document.getElementById('adherenceImpact').style.color = data.twin_score_impact.startsWith('+') ? "#10b981" : "#ef4444";
+        });
+    }
+</script>
+{% endblock %}

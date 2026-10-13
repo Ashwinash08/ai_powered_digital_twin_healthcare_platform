@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Digital Twin Healthcare Intelligence Platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+    <script>
+        // Apply theme immediately to prevent screen flicker
+        (function () {
+            const savedTheme = localStorage.getItem('healthtwin_theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=3.0">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Standalone Guaranteed Floating Theme Toggle Styles (Bottom-Right Corner) */
+        .floating-theme-toggle {
+            position: fixed !important;
+            bottom: 24px !important;
+            right: 24px !important;
+            z-index: 9999999 !important;
+            width: 50px !important;
+            height: 50px !important;
+            min-width: 50px !important;
+            min-height: 50px !important;
+            border-radius: 50% !important;
+            background: rgba(15, 23, 42, 0.9) !important;
+            backdrop-filter: blur(16px) !important;
+            -webkit-backdrop-filter: blur(16px) !important;
+            border: 1.5px solid rgba(56, 189, 248, 0.4) !important;
+            box-shadow: 0 6px 22px rgba(0, 0, 0, 0.45), 0 0 16px rgba(56, 189, 248, 0.25) !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            cursor: pointer !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            outline: none !important;
+            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease, border-color 0.25s ease !important;
+        }
+
+        [data-theme="light"] .floating-theme-toggle {
+            background: rgba(255, 255, 255, 0.95) !important;
+            border-color: rgba(37, 99, 235, 0.4) !important;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12), 0 0 14px rgba(37, 99, 235, 0.25) !important;
+        }
+
+        .floating-theme-toggle:hover {
+            transform: scale(1.12) rotate(12deg) !important;
+            border-color: #38bdf8 !important;
+            box-shadow: 0 8px 28px rgba(37, 99, 235, 0.55), 0 0 24px rgba(56, 189, 248, 0.5) !important;
+        }
+
+        .floating-theme-toggle:active {
+            transform: scale(0.92) !important;
+        }
+
+        .floating-theme-toggle .theme-icon-sun {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+
+        .floating-theme-toggle .theme-icon-moon {
+            display: none !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+
+        [data-theme="light"] .floating-theme-toggle .theme-icon-sun {
+            display: none !important;
+        }
+
+        [data-theme="light"] .floating-theme-toggle .theme-icon-moon {
+            display: flex !important;
+        }
+    </style>
+</head>
+
+<body>
+    {% if g.user %}
+    <!-- Mobile Navigation Toggle -->
+    <button type="button" class="mobile-nav-toggle" id="mobileNavToggle" onclick="toggleMobileSidebar()" aria-label="Toggle Navigation Menu">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+    </button>
+    
+    <!-- Backdrop Overlay for Mobile Drawer -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeMobileSidebar()"></div>
+
+    <div class="module-wrapper">
+        <!-- Floating Blurry Glassmorphism Sidebar Island -->
+        <aside class="sidebar" id="appSidebar">
+            <div class="sidebar-header">
+                <div class="brand">
+                    <div class="brand-icon-wrapper">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="var(--primary-color)" />
+                            <path d="M2 17L12 22L22 17M2 12L12 17L22 12" stroke="var(--primary-color)" stroke-width="2.2"
+                                stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </div>
+                    <span>HealthTwin AI</span>
+                </div>
+                {% if g.user.role == 'patient' %}
+                <span class="sidebar-role-badge role-patient">Patient Twin</span>
+                {% elif g.user.role == 'doctor' %}
+                <span class="sidebar-role-badge role-doctor">Clinical Suite</span>
+                {% elif g.user.role == 'admin' %}
+                <span class="sidebar-role-badge role-admin">Admin Console</span>
+                {% endif %}
+            </div>
+
+            <ul class="sidebar-nav">
+                {% if g.user.role == 'patient' %}
+                <li><a href="{{ url_for('patient_dashboard') }}"
+                        class="{{ 'active' if request.endpoint == 'patient_dashboard' else '' }}">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                        Overview
+                    </a></li>
+                <li><a href="{{ url_for('patient_profile') }}"
+                        class="{{ 'active' if request.endpoint == 'patient_profile' else '' }}">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        Health Profile
+                    </a></li>
+                <li><a href="{{ url_for('patient_upload') }}"
+                        class="{{ 'active' if request.endpoint == 'patient_upload' else '' }}">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        Data Upload
+                    </a></li>
+                <li><a href="{{ url_for('patient_twin') }}"
+                        class="{{ 'active' if request.endpoint == 'patient_twin' else '' }}">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                        Digital Twin
+                    </a></li>
+                <li><a href="{{ url_for('patient_assessment') }}"
+                        class="{{ 'active' if request.endpoint == 'patient_assessment' else '' }}">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                        AI Assessment
+                    </a></li>
+                <li><a href="{{ url_for('patient_recommendations') }}"
+                        class="{{ 'active' if request.endpoint == 'patient_recommendations' else '' }}">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                        Recommendations
+                    </a></li>
+                <li><a href="{{ url_for('patient_chat') }}"
+                        class="{{ 'active' if request.endpoint == 'patient_chat' else '' }}">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        AI Assistant
+                    </a></li>
+                <li><a href="{{ url_for('patient_pharmacy') }}"
+                        class="{{ 'active' if request.endpoint == 'patient_pharmacy' else '' }}">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.5 20.5l10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg>
+                        Pharmacy & Rx
+                    </a></li>
+                <li><a href="{{ url_for('patient_emergency') }}"
+                        class="emergency-nav-item {{ 'active' if request.endpoint == 'patient_emergency' else '' }}">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        Emergency Twin
+                        <span class="emergency-sos-pill">SOS</span>
+                    </a></li>
+                {% elif g.user.role == 'doctor' %}
+                <li><a href="{{ url_for('doctor_dashboard') }}"
+                        class="{{ 'active' if request.endpoint == 'doctor_dashboard' else '' }}">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                        Dashboard
+                    </a></li>
+                <li><a href="{{ url_for('doctor_patients') }}"
+                        class="{{ 'active' if request.endpoint in ['doctor_patients', 'doctor_patient_detail', 'doctor_twin', 'doctor_cds', 'doctor_xai', 'doctor_research', 'doctor_consultation', 'doctor_report', 'doctor_patient_pharmacy'] else '' }}">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        Patient Management
+                    </a></li>
+                <li><a href="{{ url_for('doctor_profile') }}"
+                        class="{{ 'active' if request.endpoint == 'doctor_profile' else '' }}">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        Doctor Profile
+                    </a></li>
+                {% elif g.user.role == 'admin' %}
+                <li><a href="{{ url_for('admin_dashboard') }}"
+                        class="{{ 'active' if request.endpoint == 'admin_dashboard' else '' }}">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                        Dashboard
+                    </a></li>
+                <li><a href="{{ url_for('admin_users') }}"
+                        class="{{ 'active' if request.endpoint in ['admin_users', 'admin_users_add', 'admin_users_edit'] else '' }}">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                        User Management
+                    </a></li>
+                <li><a href="{{ url_for('admin_twins') }}"
+                        class="{{ 'active' if request.endpoint == 'admin_twins' else '' }}">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                        Digital Twins
+                    </a></li>
+                <li><a href="{{ url_for('admin_agents') }}"
+                        class="{{ 'active' if request.endpoint == 'admin_agents' else '' }}">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><circle cx="9" cy="9" r="2"/><circle cx="15" cy="9" r="2"/><path d="M8 15h8"/></svg>
+                        AI Agents
+                    </a></li>
+                <li><a href="{{ url_for('admin_models') }}"
+                        class="{{ 'active' if request.endpoint == 'admin_models' else '' }}">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                        AI Models
+                    </a></li>
+                <li><a href="{{ url_for('admin_rag') }}"
+                        class="{{ 'active' if request.endpoint == 'admin_rag' else '' }}">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                        Knowledge Base
+                    </a></li>
+                <li><a href="{{ url_for('admin_data') }}"
+                        class="{{ 'active' if request.endpoint == 'admin_data' else '' }}">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+                        Data Management
+                    </a></li>
+                <li><a href="{{ url_for('admin_audit') }}"
+                        class="{{ 'active' if request.endpoint == 'admin_audit' else '' }}">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        Security Audit
+                    </a></li>
+                {% endif %}
+            </ul>
+
+            <div class="sidebar-footer">
+                <div class="sidebar-user-card">
+                    <div class="sidebar-user-avatar">
+                        {{ (g.user.name[0] if g.user.name else 'U') | upper }}
+                    </div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name" title="{{ g.user.name }}">{{ g.user.name }}</div>
+                        <div class="sidebar-user-role">{{ g.user.role }}</div>
+                    </div>
+                </div>
+
+                <div class="sidebar-footer-actions">
+                    <a href="{{ url_for('account_profile') }}" class="btn btn-primary" title="User Profile">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        Profile
+                    </a>
+                    <a href="{{ url_for('logout') }}" class="btn btn-logout" title="Sign Out">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                        Logout
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <main class="module-content">
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            <ul class="flash-messages">
+                {% for message in messages %}
+                <li class="flash-message">{{ message }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+    {% else %}
+    {% block auth_content %}
+    {% endblock %}
+    {% endif %}
+
+    <!-- Global Floating Theme Toggle (Bottom-Right Corner) -->
+    <button type="button" class="floating-theme-toggle" id="floatingThemeToggle" onclick="toggleTheme()" aria-label="Toggle Dark and Light Theme" title="Toggle Dark and Light Theme">
+        <span class="theme-icon-sun">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+        </span>
+        <span class="theme-icon-moon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+        </span>
+    </button>
+
+    <script>
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('healthtwin_theme', newTheme);
+            
+            // Dispatch event for any charts or canvas that might re-render colors
+            window.dispatchEvent(new CustomEvent('themechanged', { detail: { theme: newTheme } }));
+        }
+
+        function toggleMobileSidebar() {
+            const sidebar = document.getElementById('appSidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            if (sidebar) sidebar.classList.toggle('sidebar-open');
+            if (backdrop) backdrop.classList.toggle('active');
+        }
+
+        function closeMobileSidebar() {
+            const sidebar = document.getElementById('appSidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            if (sidebar) sidebar.classList.remove('sidebar-open');
+            if (backdrop) backdrop.classList.remove('active');
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeMobileSidebar();
+            }
+        });
+    </script>
+</body>
+
+</html>

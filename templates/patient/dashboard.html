@@ -1,0 +1,430 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+    .vital-grid-modern {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.25rem;
+        margin-bottom: 2rem;
+    }
+
+    @media (max-width: 1024px) {
+        .vital-grid-modern {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    @media (max-width: 640px) {
+        .vital-grid-modern {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .patient-vital-card-pro {
+        border-radius: 18px;
+        padding: 1.5rem;
+        transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .vital-icon-box {
+        width: 46px;
+        height: 46px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .pulse-live-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #10b981;
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        animation: pulse-ring 2s infinite;
+        display: inline-block;
+    }
+
+    @keyframes pulse-ring {
+        0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+        70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    .action-btn-pro {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.65rem 1.25rem;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.88rem;
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+</style>
+
+<!-- Welcome Hero Header -->
+<div class="patient-hero" style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem;">
+    <div style="display: flex; align-items: center; gap: 1.25rem;">
+        <div style="width: 60px; height: 60px; border-radius: 16px; background: linear-gradient(135deg, #2563eb, #7c3aed); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; font-weight: 800; box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);">
+            {{ g.user.name[0] | upper }}
+        </div>
+        <div>
+            <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                <h1 style="margin: 0; font-size: 1.75rem; font-weight: 800; letter-spacing: -0.5px;">Welcome, {{ g.user.name }}</h1>
+                <span class="badge badge-green" style="font-weight: 600; font-size: 0.78rem;">
+                    <span class="pulse-live-dot"></span> Live IoT Twin Active
+                </span>
+            </div>
+            <p style="color: var(--text-secondary); margin: 0.35rem 0 0 0; font-size: 0.88rem;">
+                Twin Identifier: <span style="font-weight: 700; color: var(--primary-color);">#PT-{{ g.user.id }}-2026</span> &bull; Multi-Agent Intelligence Platform Connected
+            </p>
+        </div>
+    </div>
+
+    <!-- Quick Action Buttons -->
+    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+        <a href="{{ url_for('patient_twin') }}" class="action-btn-pro btn-primary">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            Interactive Twin 3D
+        </a>
+        <a href="{{ url_for('patient_chat') }}" class="action-btn-pro btn-outline">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            AI Clinical Assistant
+        </a>
+    </div>
+</div>
+
+<!-- 4 Real-Time Vitals Metric Cards -->
+<div class="vital-grid-modern">
+    <!-- 1. Heart Rate -->
+    <div class="patient-vital-card-pro glass-panel">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.5px;">Heart Rate</span>
+                <div style="font-size: 2.1rem; font-weight: 800; color: var(--heading-color); line-height: 1.15; margin-top: 0.35rem;">
+                    74 <span style="font-size: 0.9rem; font-weight: 500; color: var(--text-muted);">bpm</span>
+                </div>
+            </div>
+            <div class="vital-icon-box" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3);">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </div>
+        </div>
+        <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.78rem; color: #10b981; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> Normal Resting Zone
+            </span>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">60-100 bpm</span>
+        </div>
+    </div>
+
+    <!-- 2. Blood Pressure -->
+    <div class="patient-vital-card-pro glass-panel">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.5px;">Blood Pressure</span>
+                <div style="font-size: 2.1rem; font-weight: 800; color: var(--primary-color); line-height: 1.15; margin-top: 0.35rem;">
+                    122/80 <span style="font-size: 0.9rem; font-weight: 500; color: var(--text-muted);">mmHg</span>
+                </div>
+            </div>
+            <div class="vital-icon-box" style="background: var(--badge-blue-bg); color: var(--primary-color); border: 1px solid var(--badge-blue-border);">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+        </div>
+        <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.78rem; color: #10b981; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> In Control
+            </span>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Systolic/Dia</span>
+        </div>
+    </div>
+
+    <!-- 3. SpO2 Oxygen -->
+    <div class="patient-vital-card-pro glass-panel">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.5px;">Blood Oxygen</span>
+                <div style="font-size: 2.1rem; font-weight: 800; color: #0284c7; line-height: 1.15; margin-top: 0.35rem;">
+                    98.5 <span style="font-size: 0.9rem; font-weight: 500; color: var(--text-muted);">%</span>
+                </div>
+            </div>
+            <div class="vital-icon-box" style="background: rgba(2, 132, 199, 0.15); color: #0284c7; border: 1px solid rgba(2, 132, 199, 0.3);">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+            </div>
+        </div>
+        <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.78rem; color: #10b981; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> Optimal Oxygen
+            </span>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Target > 95%</span>
+        </div>
+    </div>
+
+    <!-- 4. Health Score -->
+    <div class="patient-vital-card-pro glass-panel">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.5px;">Twin Health Score</span>
+                <div style="font-size: 2.1rem; font-weight: 800; color: #10b981; line-height: 1.15; margin-top: 0.35rem;">
+                    88 <span style="font-size: 0.9rem; font-weight: 500; color: var(--text-muted);">/100</span>
+                </div>
+            </div>
+            <div class="vital-icon-box" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+        </div>
+        <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.78rem; color: #10b981; font-weight: 600;">+4.5% vs Last Month</span>
+            <span class="badge badge-green" style="font-size: 0.72rem;">Grade A-</span>
+        </div>
+    </div>
+</div>
+
+<!-- Longitudinal Vitals Analytics & Care Matrix -->
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+    
+    <!-- Left: 7-Day Interactive Vitals Chart -->
+    <div class="glass-panel" style="padding: 2rem; border-radius: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem;">
+            <div>
+                <h3 style="margin: 0; font-size: 1.2rem; font-weight: 700;">7-Day Physiological Vitals Stream</h3>
+                <p style="margin: 0.25rem 0 0 0; color: var(--text-secondary); font-size: 0.82rem;">Continuous multi-source biometric tracking from connected IoT devices</p>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+                <span class="badge badge-blue">Heart Rate</span>
+                <span class="badge badge-green">Systolic BP</span>
+            </div>
+        </div>
+        <div style="height: 260px; position: relative;">
+            <canvas id="patientVitalsTrendChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Right: Multi-Agent Clinical Alerts & Consensus Insight -->
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        
+        <!-- Alerts Feed -->
+        <div class="glass-panel" style="padding: 1.5rem; border-radius: 20px;">
+            <h3 style="margin: 0 0 1rem 0; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; justify-content: space-between;">
+                <span style="display: flex; align-items: center; gap: 0.5rem;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2.2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                    Clinical Notifications
+                </span>
+                <span class="badge badge-blue">{{ alerts|length if alerts else 1 }} Active</span>
+            </h3>
+
+            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                {% if alerts %}
+                    {% for alert in alerts %}
+                    <div class="profile-info-box" style="padding: 0.85rem; border-radius: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-weight: 700; font-size: 0.85rem; color: {% if alert.priority == 'critical' %}#ef4444{% else %}var(--text-color){% endif %};">{{ alert.title }}</span>
+                            <span style="font-size: 0.7rem; color: var(--text-muted);">{{ alert.created_at.split(' ')[0] if alert.created_at else 'Today' }}</span>
+                        </div>
+                        <p style="margin: 0.35rem 0 0 0; font-size: 0.78rem; color: var(--text-secondary); line-height: 1.4;">{{ alert.message }}</p>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="profile-info-box" style="padding: 0.85rem; border-radius: 12px; border-left: 3px solid #10b981;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-weight: 700; font-size: 0.85rem; color: #10b981;">IoT Telemetry Synchronized</span>
+                            <span class="badge badge-green" style="font-size: 0.65rem; padding: 0.15rem 0.45rem;">Active</span>
+                        </div>
+                        <p style="margin: 0.35rem 0 0 0; font-size: 0.78rem; color: var(--text-secondary); line-height: 1.4;">All biometric parameters are currently operating within the expected physiological baseline bounds.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- AI Consensus Insight Box -->
+        <div class="glass-panel" style="padding: 1.5rem; border-radius: 20px; border-color: rgba(56, 189, 248, 0.4);">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2.2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                <h4 style="margin: 0; font-size: 0.92rem; font-weight: 700; color: var(--primary-color);">Daily Multi-Agent Insight</h4>
+            </div>
+            <p style="margin: 0 0 0.75rem 0; font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5;">
+                Cardiology and Metabolic agents note that your resting heart rate stabilized at 74 bpm. Maintaining your current hydration routine is predicted to preserve blood pressure regulation.
+            </p>
+            <a href="{{ url_for('patient_recommendations') }}" style="font-size: 0.8rem; font-weight: 700; color: var(--primary-color); text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem;">
+                View AI Recommendations ➔
+            </a>
+        </div>
+
+    </div>
+</div>
+
+<!-- Daily Medication Regimen & Doctor Encounters -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+    
+    <!-- Medication Regimen -->
+    <div class="glass-panel" style="padding: 2rem; border-radius: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+            <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M7 12h10"/><path d="M12 7v10"/></svg>
+                Prescribed Medication Regimen
+            </h3>
+            <span class="badge badge-blue">2 Active</span>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <div class="profile-info-box" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-radius: 14px;">
+                <div>
+                    <div style="font-weight: 700; color: var(--text-color); font-size: 0.95rem;">Lisinopril (10mg)</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">1 tablet daily with breakfast &bull; Pre-hypertension management</div>
+                </div>
+                <span class="badge badge-green" style="font-size: 0.75rem; padding: 0.35rem 0.75rem; border-radius: 12px;">
+                    ✓ Taken Today
+                </span>
+            </div>
+
+            <div class="profile-info-box" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-radius: 14px;">
+                <div>
+                    <div style="font-weight: 700; color: var(--text-color); font-size: 0.95rem;">Atorvastatin (20mg)</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">1 tablet at bedtime &bull; Lipid & cholesterol stabilization</div>
+                </div>
+                <button class="btn btn-outline" style="padding: 0.4rem 0.85rem; font-size: 0.78rem; font-weight: 600; border-radius: 10px;" onclick="this.innerText='✓ Marked Taken'; this.className='badge badge-green';">
+                    Mark as Taken
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Doctor Consultations & Care Team -->
+    <div class="glass-panel" style="padding: 2rem; border-radius: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+            <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2.2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                Physician Consultation Record
+            </h3>
+            <a href="{{ url_for('patient_chat') }}" style="font-size: 0.78rem; font-weight: 600; color: var(--primary-color); text-decoration: none;">Message Doctor</a>
+        </div>
+
+        {% if consultations %}
+            <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+                {% for consult in consultations %}
+                <div class="profile-info-box" style="padding: 1rem; border-radius: 14px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 700; color: var(--text-color); font-size: 0.9rem;">Dr. {{ consult.doctor_name }}</span>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">{{ consult.created_at.split(' ')[0] if consult.created_at else 'Recent' }}</span>
+                    </div>
+                    <p style="margin: 0.4rem 0 0.4rem 0; font-size: 0.82rem; color: var(--text-secondary); line-height: 1.4;">{{ consult.notes }}</p>
+                    {% if consult.follow_up_date %}
+                    <div style="font-size: 0.75rem; color: var(--primary-color); font-weight: 600;">Next Follow-up: {{ consult.follow_up_date }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="profile-info-box" style="padding: 1rem; border-radius: 14px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: 700; color: var(--text-color); font-size: 0.9rem;">Dr. Sarah Jenkins (Cardiology)</span>
+                    <span class="badge badge-blue" style="font-size: 0.72rem;">Telehealth</span>
+                </div>
+                <p style="margin: 0.4rem 0 0.5rem 0; font-size: 0.82rem; color: var(--text-secondary); line-height: 1.4;">"Patient's digital twin vitals demonstrate stable cardiovascular adaptation under the updated Lisinopril regimen."</p>
+                <div style="font-size: 0.78rem; color: var(--primary-color); font-weight: 600;">Scheduled Follow-up: Nov 28, 2026 at 10:30 AM</div>
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('patientVitalsTrendChart');
+    if (!ctx) return;
+    
+    function isDarkMode() {
+        return document.documentElement.getAttribute('data-theme') !== 'light';
+    }
+
+    let vitalsChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            datasets: [
+                {
+                    label: 'Heart Rate (bpm)',
+                    data: [78, 76, 75, 73, 75, 72, 74],
+                    borderColor: '#2563eb',
+                    backgroundColor: 'rgba(37, 99, 235, 0.12)',
+                    borderWidth: 2.5,
+                    fill: true,
+                    tension: 0.35,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#2563eb'
+                },
+                {
+                    label: 'Systolic BP (mmHg)',
+                    data: [128, 126, 124, 125, 122, 121, 122],
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.08)',
+                    borderWidth: 2.5,
+                    fill: true,
+                    tension: 0.35,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#10b981'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        boxWidth: 12,
+                        color: isDarkMode() ? '#cbd5e1' : '#334155',
+                        font: { family: "'Plus Jakarta Sans', sans-serif", size: 12, weight: '600' }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(15, 23, 42, 0.92)',
+                    titleColor: '#ffffff',
+                    bodyColor: '#f1f5f9',
+                    padding: 10,
+                    cornerRadius: 8
+                }
+            },
+            scales: {
+                y: {
+                    min: 50,
+                    max: 140,
+                    grid: { color: isDarkMode() ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)' },
+                    ticks: { 
+                        color: isDarkMode() ? '#94a3b8' : '#64748b',
+                        font: { family: "'Plus Jakarta Sans', sans-serif", size: 11 } 
+                    }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { 
+                        color: isDarkMode() ? '#94a3b8' : '#64748b',
+                        font: { family: "'Plus Jakarta Sans', sans-serif", size: 11 } 
+                    }
+                }
+            }
+        }
+    });
+
+    window.addEventListener('themechanged', function() {
+        const dark = isDarkMode();
+        vitalsChart.options.plugins.legend.labels.color = dark ? '#cbd5e1' : '#334155';
+        vitalsChart.options.scales.y.grid.color = dark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)';
+        vitalsChart.options.scales.y.ticks.color = dark ? '#94a3b8' : '#64748b';
+        vitalsChart.options.scales.x.ticks.color = dark ? '#94a3b8' : '#64748b';
+        vitalsChart.update();
+    });
+});
+</script>
+{% endblock %}

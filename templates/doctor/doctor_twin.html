@@ -1,0 +1,504 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+    .twin-stat-card {
+        background: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .organ-node {
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .organ-node:hover {
+        filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.8));
+        transform: scale(1.05);
+    }
+
+    .drift-alert-box {
+        background: var(--surface-color);
+        border: 1.5px solid rgba(244, 63, 94, 0.4);
+        border-radius: 16px;
+        padding: 1.25rem;
+        margin-bottom: 2rem;
+    }
+
+    .version-timeline-item {
+        position: relative;
+        padding-left: 1.75rem;
+        padding-bottom: 1.25rem;
+        border-left: 2px solid var(--border-color);
+    }
+    .version-timeline-item:last-child {
+        border-left: 2px solid transparent;
+        padding-bottom: 0;
+    }
+    .version-dot {
+        position: absolute;
+        left: -6px;
+        top: 0;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #2563eb;
+        border: 2px solid var(--surface-color);
+        box-shadow: 0 0 0 1px #93c5fd;
+    }
+</style>
+
+<!-- Patient Header & Navigation -->
+{% include 'doctor/_patient_nav.html' %}
+
+<!-- Twin Intelligence Header Metrics -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
+    <!-- Sync Fidelity Score -->
+    <div class="twin-stat-card">
+        <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(16, 185, 129, 0.15); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+            🔄
+        </div>
+        <div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 700; text-transform: uppercase;">Sync Fidelity Score</div>
+            <div style="font-size: 1.4rem; font-weight: 800; color: #10b981;">{{ sync_data.score }}%</div>
+            <div style="font-size: 0.72rem; color: #10b981;">Latency: {{ sync_data.latency_ms }}ms &bull; {{ sync_data.stream_health }}</div>
+        </div>
+    </div>
+
+    <!-- Data Quality Score -->
+    <div class="twin-stat-card">
+        <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--badge-blue-bg); color: var(--primary-color); display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+            🛡️
+        </div>
+        <div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 700; text-transform: uppercase;">Data Quality Score</div>
+            <div style="font-size: 1.4rem; font-weight: 800; color: var(--primary-color);">{{ quality_data.score }}/100</div>
+            <div style="font-size: 0.72rem; color: var(--primary-color);">{{ quality_data.grade }}</div>
+        </div>
+    </div>
+
+    <!-- Twin Drift Status -->
+    <div class="twin-stat-card">
+        <div style="width: 44px; height: 44px; border-radius: 12px; background: {{ 'rgba(239, 68, 68, 0.15)' if drift_data.drift_detected else 'rgba(16, 185, 129, 0.15)' }}; color: {{ '#ef4444' if drift_data.drift_detected else '#10b981' }}; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+            {{ '⚠️' if drift_data.drift_detected else '🎯' }}
+        </div>
+        <div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 700; text-transform: uppercase;">Model Drift Posture</div>
+            <div style="font-size: 1.15rem; font-weight: 800; color: {{ '#ef4444' if drift_data.drift_detected else '#10b981' }};">
+                {{ 'Divergence (' ~ drift_data.drift_percentage ~ '%)' if drift_data.drift_detected else 'Aligned (<4.5%)' }}
+            </div>
+            <div style="font-size: 0.72rem; color: var(--text-secondary);">Bi-LSTM Trajectory Model</div>
+        </div>
+    </div>
+
+    <!-- Version Snapshots -->
+    <div class="twin-stat-card">
+        <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--badge-purple-bg); color: var(--purple-glow); display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+            📜
+        </div>
+        <div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 700; text-transform: uppercase;">Twin Version Snapshots</div>
+            <div style="font-size: 1.3rem; font-weight: 800; color: var(--purple-glow);">{{ versions|length }} Active</div>
+            <div style="font-size: 0.72rem; color: var(--purple-glow);">Latest: {{ versions[0].version_label if versions else 'v1.0.0' }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Twin Drift Notification Alert (If detected) -->
+{% if drift_data.drift_detected %}
+<div class="drift-alert-box">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.75rem;">
+        <div style="display: flex; gap: 0.85rem; align-items: center;">
+            <div style="font-size: 1.75rem;">🚨</div>
+            <div>
+                <h4 style="margin: 0; color: #ef4444; font-size: 1.05rem; font-weight: 800;">Digital Twin Trajectory Divergence Detected</h4>
+                <p style="margin: 0.2rem 0 0 0; color: var(--text-secondary); font-size: 0.86rem; line-height: 1.45;">
+                    {{ drift_data.summary }} Real measured patient vitals exceed the ±8% model uncertainty bound.
+                </p>
+            </div>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+            <button onclick="scanForTwinDrift()" class="btn btn-outline" style="border-color: #f43f5e; color: #f43f5e; font-size: 0.82rem; background: var(--surface-color);">
+                🔄 Rescan Trajectory
+            </button>
+            <form action="{{ url_for('admin_twin_sync', patient_id=patient_id) }}" method="POST" style="margin:0;">
+                <button type="submit" class="btn btn-primary" style="background: #e11d48; border-color: #e11d48; font-size: 0.82rem; font-weight: 700;">
+                    Recalibrate Twin Model
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Main Grid: Anatomical Twin Wireframe & Interactive Engines -->
+<div class="grid" style="display: grid; grid-template-columns: 1fr 1.25fr; gap: 2rem; margin-bottom: 2rem;">
+    
+    <!-- Left Column: 2D Anatomical Digital Twin -->
+    <div class="glass-panel" style="padding: 2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 520px; position: relative;">
+        
+        <!-- Live Status Indicators -->
+        <div style="position: absolute; top: 1.5rem; left: 1.5rem; background: var(--surface-color); color: var(--text-color); padding: 0.4rem 0.85rem; border-radius: 20px; font-size: 0.78rem; font-weight: 700; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 0.4rem;">
+            <span style="width: 8px; height: 8px; border-radius: 50%; background: #22c55e; display: inline-block;"></span> 
+            Live IoT Twin Sync
+        </div>
+        
+        <div style="position: absolute; top: 1.5rem; right: 1.5rem; text-align: right;">
+            <div style="font-size: 0.72rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700;">Twin Health Score</div>
+            <div style="font-size: 2.2rem; font-weight: 800; color: var(--primary-color); line-height: 1;" id="twinScore">82</div>
+            <div style="font-size: 0.7rem; color: #10b981; font-weight: 600;">Optimal Homeostasis</div>
+        </div>
+
+        <!-- High-Fidelity 2D Anatomical SVG Wireframe -->
+        <svg width="240" height="430" viewBox="0 0 240 430" style="margin: 1.5rem 0; filter: drop-shadow(0 0 22px rgba(59, 130, 246, 0.3)); max-width: 100%; height: auto;">
+            <!-- Outer Glow & Pedestal Rings -->
+            <ellipse cx="120" cy="410" rx="75" ry="12" fill="none" stroke="rgba(59, 130, 246, 0.3)" stroke-width="2" stroke-dasharray="4 3"></ellipse>
+            <ellipse cx="120" cy="410" rx="48" ry="8" fill="none" stroke="rgba(59, 130, 246, 0.5)" stroke-width="1.5"></ellipse>
+
+            <!-- Anatomical Humanoid Silhouette (Sculpted Cranium, Shoulders, Waist, Legs) -->
+            <path d="M 120 18 C 138 18 148 30 148 48 C 148 62 140 72 128 78 C 138 82 155 88 168 100 C 182 112 188 128 188 148 C 188 178 178 215 170 235 C 166 244 156 248 148 248 L 148 262 C 154 268 158 285 158 310 C 158 340 152 385 146 398 C 142 405 130 405 125 400 L 123 270 L 117 270 L 115 400 C 110 405 98 405 94 398 C 88 385 82 340 82 310 C 82 285 86 268 92 262 L 92 248 C 84 248 74 244 70 235 C 62 215 52 178 52 148 C 52 128 58 112 72 100 C 85 88 102 82 112 78 C 100 72 92 62 92 48 C 92 30 102 18 120 18 Z" 
+                  fill="none" stroke="rgba(59, 130, 246, 0.55)" stroke-width="2.2" stroke-dasharray="6 4"></path>
+
+            <!-- Anatomical Clavicles & Sternum -->
+            <path d="M 85 96 Q 120 106 155 96" fill="none" stroke="rgba(148, 163, 184, 0.45)" stroke-width="2"></path>
+            <line x1="120" y1="102" x2="120" y2="155" stroke="rgba(148, 163, 184, 0.45)" stroke-width="2.5"></line>
+
+            <!-- Anatomical Rib Cage Arcs -->
+            <path d="M 94 116 Q 120 126 146 116" fill="none" stroke="rgba(59, 130, 246, 0.3)" stroke-width="1.5"></path>
+            <path d="M 92 130 Q 120 142 148 130" fill="none" stroke="rgba(59, 130, 246, 0.3)" stroke-width="1.5"></path>
+            <path d="M 94 144 Q 120 156 146 144" fill="none" stroke="rgba(59, 130, 246, 0.3)" stroke-width="1.5"></path>
+            <path d="M 98 158 Q 120 170 142 158" fill="none" stroke="rgba(59, 130, 246, 0.3)" stroke-width="1.5"></path>
+
+            <!-- Spinal Vertebral Column -->
+            <line x1="120" y1="78" x2="120" y2="245" stroke="rgba(168, 85, 247, 0.55)" stroke-width="2.2" stroke-dasharray="3 3"></line>
+
+            <!-- Brain & Cerebrum -->
+            <ellipse class="organ-node" onclick="inspectOrgan('Brain & Neural Vagal Tone', 'Cognitive index: 94/100. Stress response: Normal. Vagal parasympathetic tone: Stable SDNN 42ms.')" cx="120" cy="46" rx="18" ry="16" fill="rgba(34, 197, 94, 0.2)" stroke="#22c55e" stroke-width="2.2"></ellipse>
+            <line x1="120" y1="32" x2="120" y2="60" stroke="#22c55e" stroke-width="1.2" stroke-dasharray="2 2"></line>
+
+            <!-- Bilateral Lungs -->
+            <path class="organ-node" onclick="inspectOrgan('Pulmonary Telemetry', 'SpO2: 98.5% resting. Respiratory rate: 15 bpm. Clear bilateral breath sounds with symmetric lung compliance.')" d="M 102 112 C 114 112 114 142 102 152 C 90 148 88 122 102 112 Z" fill="rgba(2, 132, 199, 0.22)" stroke="#0284c7" stroke-width="2.2"></path>
+            <path class="organ-node" onclick="inspectOrgan('Pulmonary Telemetry', 'SpO2: 98.5% resting. Respiratory rate: 15 bpm. Clear bilateral breath sounds with symmetric lung compliance.')" d="M 138 112 C 126 112 126 142 138 152 C 150 148 152 122 138 112 Z" fill="rgba(2, 132, 199, 0.22)" stroke="#0284c7" stroke-width="2.2"></path>
+
+            <!-- Beating Heart (with Aorta Arch & Pulse Animation) -->
+            <path d="M 118 122 Q 124 115 120 108" fill="none" stroke="#ef4444" stroke-width="2.5"></path>
+            <path class="organ-node" onclick="inspectOrgan('Cardiovascular System', 'Resting BP: 124/80 mmHg. Heart Rate: 72 bpm. Left ventricular strain index: 0.14 (Optimal). Lisinopril response: Favorable.')" d="M 118 126 C 124 120 134 122 128 136 L 118 146 L 108 136 C 102 122 112 120 118 126 Z" fill="rgba(239, 68, 68, 0.35)" stroke="#ef4444" stroke-width="2.5" style="animation: pulse-svg 1.4s infinite; transform-origin: 118px 136px;"></path>
+
+            <!-- Hepatic Liver -->
+            <path class="organ-node" onclick="inspectOrgan('Hepatic & Metabolic Panel', 'ALT/AST: 22/26 U/L (Normal). Fasting glucose: 94 mg/dL. Lipid clearance trajectory: -8% post Atorvastatin.')" d="M 124 162 Q 146 158 148 174 Q 128 180 124 162 Z" fill="rgba(245, 158, 11, 0.25)" stroke="#f59e0b" stroke-width="2.2"></path>
+
+            <!-- Renal Kidneys (Bilateral) -->
+            <ellipse class="organ-node" onclick="inspectOrgan('Renal System', 'eGFR: >90 mL/min/1.73m2. Serum Creatinine: 0.9 mg/dL. Bilateral electrolyte filtration: Normal.')" cx="104" cy="184" rx="7" ry="10" fill="rgba(147, 51, 234, 0.25)" stroke="#9333ea" stroke-width="2"></ellipse>
+            <ellipse class="organ-node" onclick="inspectOrgan('Renal System', 'eGFR: >90 mL/min/1.73m2. Serum Creatinine: 0.9 mg/dL. Bilateral electrolyte filtration: Normal.')" cx="136" cy="184" rx="7" ry="10" fill="rgba(147, 51, 234, 0.25)" stroke="#9333ea" stroke-width="2"></ellipse>
+        </svg>
+
+        <!-- Organ Telemetry Modal Box -->
+        <div id="organTelemetryBox" style="width: 100%; background: var(--surface-muted); border: 1.5px solid var(--border-color); border-radius: 12px; padding: 0.85rem 1rem; font-size: 0.85rem; text-align: left;">
+            <div style="font-weight: 700; color: var(--text-color); margin-bottom: 0.2rem;" id="organTitle">Cardiovascular Telemetry (Selected)</div>
+            <div style="color: var(--text-secondary); font-size: 0.82rem; line-height: 1.4;" id="organDetails">Resting BP: 124/80 mmHg &bull; Heart Rate: 72 bpm &bull; Lisinopril adherence: 94%. Click any organ above to inspect real-time biometrics.</div>
+        </div>
+    </div>
+
+    <!-- Right Column: What-If Scenario Simulation Engine -->
+    <div style="display: flex; flex-direction: column; gap: 2rem;">
+        
+        <!-- Multi-Agent What-If Scenario Sandbox -->
+        <div class="glass-panel" style="padding: 2rem; border-radius: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+                <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem; font-size: 1.15rem; color: var(--text-color);">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polygon points="12 8 8 12 12 16 12 8"/></svg>
+                    What-If Clinical Scenario Sandbox
+                </h3>
+                <span class="badge badge-purple">Multi-Agent Simulation</span>
+            </div>
+            
+            <p style="font-size: 0.86rem; color: var(--text-secondary); margin-top: 0; margin-bottom: 1.25rem;">
+                Stress-test hypothetical pharmacology and lifestyle modifications against this patient's digital twin to forecast 6-month hemodynamic trajectories.
+            </p>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
+                <div>
+                    <label style="font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 0.3rem; display: block;">Medication Intervention</label>
+                    <select id="docSimMeds" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 8px; border: 1.5px solid var(--border-color); font-size: 0.85rem; background: var(--surface-color); color: var(--text-color);">
+                        <option value="current">Maintain Current (Lisinopril 10mg)</option>
+                        <option value="increase_10mg">Increase Lisinopril to 20mg daily</option>
+                        <option value="decrease_5mg">Taper Lisinopril to 5mg daily</option>
+                        <option value="discontinue">Discontinue Medication (0mg)</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label style="font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 0.3rem; display: block;">Dietary Protocol</label>
+                    <select id="docSimDiet" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 8px; border: 1.5px solid var(--border-color); font-size: 0.85rem; background: var(--surface-color); color: var(--text-color);">
+                        <option value="none">Standard Diet (No Change)</option>
+                        <option value="dash_diet">Prescribe DASH Diet (&lt;2g Sodium)</option>
+                        <option value="low_sodium">Low Sodium Restriction</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
+                <div>
+                    <label style="font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 0.3rem; display: block;">Aerobic Training (Min/Wk)</label>
+                    <select id="docSimExercise" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 8px; border: 1.5px solid var(--border-color); font-size: 0.85rem; background: var(--surface-color); color: var(--text-color);">
+                        <option value="0">Sedentary (0 min/week)</option>
+                        <option value="60">Light Walk (60 min/week)</option>
+                        <option value="150" selected>Supervised Cardio (150 min/week)</option>
+                        <option value="250">Intense Cardio (250 min/week)</option>
+                    </select>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 1.4rem;">
+                    <input type="checkbox" id="docSimStress" checked>
+                    <label for="docSimStress" style="font-size: 0.82rem; font-weight: 600; color: var(--text-color); cursor: pointer;">Stress reduction protocol</label>
+                </div>
+            </div>
+            
+            <button class="btn btn-primary" style="width: 100%; font-weight: 700; padding: 0.7rem; border-radius: 10px;" onclick="runDoctorWhatIfSimulation()">
+                ⚡ Run Multi-Agent Trajectory Simulation
+            </button>
+        </div>
+
+        <!-- Simulation Trajectory Chart Results -->
+        <div class="glass-panel" style="padding: 2rem; border-radius: 20px; display: none;" id="docSimResults">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700; color: #10b981;" id="docSimTitle">
+                    6-Month Simulated Trajectory Forecast
+                </h3>
+                <span id="docSimRiskBadge" class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 700; font-size: 0.8rem; border: 1px solid rgba(16, 185, 129, 0.3);">-18% CVD Risk</span>
+            </div>
+            
+            <p style="font-size: 0.88rem; color: var(--text-color); margin-bottom: 1.25rem; line-height: 1.5;" id="docSimSummary">
+                Increasing Lisinopril and adhering to the DASH protocol stabilizes systolic BP at 118 mmHg.
+            </p>
+            
+            <div style="height: 170px; margin-bottom: 1rem;">
+                <canvas id="docSimChart"></canvas>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+                <button onclick="saveDoctorScenario()" class="btn btn-outline" style="border-color: #8b5cf6; color: #8b5cf6; font-size: 0.82rem; font-weight: 600; background: var(--surface-color);">
+                    💾 Save to Patient What-If Library
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Lower Section: Digital Twin Version History & Snapshot Snapshots -->
+<div class="glass-panel" style="padding: 2rem; border-radius: 20px; margin-bottom: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+        <div>
+            <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--text-color);">Digital Twin Version History & Longitudinal Snapshots</h3>
+            <p style="margin: 0.2rem 0 0 0; font-size: 0.82rem; color: var(--text-secondary);">Audit chronological baseline calibrations and compare past physiological states across medication milestones.</p>
+        </div>
+        
+        <!-- Create Snapshot Button -->
+        <button onclick="openCreateSnapshotModal()" class="btn btn-primary" style="font-size: 0.85rem; font-weight: 700; padding: 0.45rem 1rem;">
+            + Take Version Snapshot
+        </button>
+    </div>
+
+    <!-- Timeline of Versions -->
+    <div style="display: flex; flex-direction: column; gap: 1.25rem; margin-top: 1rem;">
+        {% for v in versions %}
+        <div class="version-timeline-item">
+            <div class="version-dot"></div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem;">
+                <div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.2rem;">
+                        <span style="font-weight: 800; font-size: 1rem; color: var(--text-color);">{{ v.version_label }}</span>
+                        {% if loop.first %}
+                            <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); font-weight: 800; font-size: 0.72rem;">ACTIVE MODEL</span>
+                        {% else %}
+                            <span class="badge" style="background: var(--surface-muted); color: var(--text-secondary); border: 1px solid var(--border-color); font-size: 0.72rem;">Archived Snapshot</span>
+                        {% endif %}
+                        <span class="badge" style="background: var(--badge-blue-bg); color: var(--primary-color); border: 1px solid var(--badge-blue-border); font-size: 0.72rem;">Sync: {{ v.sync_score }}%</span>
+                        <span class="badge badge-purple" style="font-size: 0.72rem;">Quality: {{ v.data_quality_score }}%</span>
+                    </div>
+                    <div style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 0.4rem;">
+                        Recorded on {{ v.created_at }} &bull; Health Score: <strong>{{ v.health_score }}/100</strong>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="background: var(--surface-muted); border: 1px solid var(--border-color); border-radius: 10px; padding: 0.75rem 1rem; font-size: 0.84rem; color: var(--text-color); margin-top: 0.4rem;">
+                {{ v.clinical_notes }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Modal: Take Version Snapshot -->
+<div id="snapshotModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(5px); z-index: 1100; align-items: center; justify-content: center;">
+    <div class="glass-panel" style="background: var(--card-bg); border: 1px solid var(--border-color); width: 90%; max-width: 500px; padding: 2rem; border-radius: 20px; box-shadow: var(--shadow-lg);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+            <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--text-color);">Create Twin Version Snapshot</h3>
+            <button onclick="closeCreateSnapshotModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary);">&times;</button>
+        </div>
+
+        <form action="{{ url_for('admin_twin_create_version', patient_id=patient_id) }}" method="POST">
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 0.35rem;">Version Identifier / Tag</label>
+                <input type="text" name="version_label" value="v1.{{ versions|length }}.0-Clinical-Checkpoint" required style="width: 100%; padding: 0.6rem 0.8rem; border-radius: 8px; border: 1.5px solid var(--border-color); font-size: 0.88rem; background: var(--surface-color); color: var(--text-color);">
+            </div>
+
+            <div style="margin-bottom: 1.25rem;">
+                <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 0.35rem;">Clinical Notes & Calibration Rationale</label>
+                <textarea name="notes" rows="3" placeholder="Describe recent treatment adjustment, medication response, or wearable calibration..." required style="width: 100%; padding: 0.6rem 0.8rem; border-radius: 8px; border: 1.5px solid var(--border-color); font-size: 0.88rem; background: var(--surface-color); color: var(--text-color);"></textarea>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+                <button type="button" onclick="closeCreateSnapshotModal()" class="btn btn-outline" style="font-size: 0.85rem; background: var(--surface-color); color: var(--text-color); border: 1px solid var(--border-color);">Cancel</button>
+                <button type="submit" class="btn btn-primary" style="font-size: 0.85rem; font-weight: 700;">Save Snapshot</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    var docSimChartInstance = null;
+    var currentDocSimData = null;
+    var patientId = {{ patient_id }};
+
+    function inspectOrgan(title, details) {
+        document.getElementById('organTitle').innerText = title;
+        document.getElementById('organDetails').innerText = details;
+        document.getElementById('organTelemetryBox').style.borderColor = '#3b82f6';
+    }
+
+    function runDoctorWhatIfSimulation() {
+        var payload = {
+            patient_id: patientId,
+            med_dose: document.getElementById('docSimMeds').value,
+            diet: document.getElementById('docSimDiet').value,
+            exercise_min: document.getElementById('docSimExercise').value,
+            stress_reduction: document.getElementById('docSimStress').checked
+        };
+
+        fetch('/api/twin/whatif/simulate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            currentDocSimData = data;
+            document.getElementById('docSimResults').style.display = 'block';
+            document.getElementById('docSimRiskBadge').innerText = data.risk_delta;
+            document.getElementById('docSimSummary').innerText = data.summary;
+
+            // Animate Score Counter on left panel
+            animateTwinScore(data.projected_health_score);
+
+            // Render Chart
+            renderDocSimChart(data.timeline_months, data.systolic_trajectory);
+        });
+    }
+
+    function animateTwinScore(targetScore) {
+        var el = document.getElementById('twinScore');
+        var curr = parseInt(el.innerText) || 80;
+        var step = curr < targetScore ? 1 : -1;
+        var interval = setInterval(function() {
+            if (curr === targetScore) {
+                clearInterval(interval);
+            } else {
+                curr += step;
+                el.innerText = curr;
+            }
+        }, 30);
+    }
+
+    function renderDocSimChart(labels, data) {
+        var ctx = document.getElementById('docSimChart').getContext('2d');
+        if (docSimChartInstance) {
+            docSimChartInstance.destroy();
+        }
+
+        docSimChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Projected Systolic BP (mmHg)',
+                    data: data,
+                    borderColor: '#2563eb',
+                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                    borderWidth: 2.5,
+                    fill: true,
+                    tension: 0.35,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#2563eb'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { min: 90, max: 170, grid: { color: '#f1f5f9' }, ticks: { font: { size: 10 } } },
+                    x: { grid: { display: false }, ticks: { font: { size: 10 } } }
+                }
+            }
+        });
+    }
+
+    function saveDoctorScenario() {
+        if (!currentDocSimData) return;
+        var title = prompt('Enter a title for this What-If treatment protocol:', 'Prescription & Lifestyle Optimization');
+        if (!title) return;
+
+        var payload = {
+            patient_id: patientId,
+            title: title,
+            intervention_type: 'combined',
+            parameters: {
+                med_dose: document.getElementById('docSimMeds').value,
+                diet: document.getElementById('docSimDiet').value,
+                exercise_min: document.getElementById('docSimExercise').value
+            },
+            projected_health_score: currentDocSimData.projected_health_score,
+            risk_delta: currentDocSimData.risk_delta,
+            summary: currentDocSimData.summary
+        };
+
+        fetch('/api/twin/whatif/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(function(res) { return res.json(); })
+        .then(function() {
+            alert('Simulation successfully saved to Patient What-If Library!');
+        });
+    }
+
+    function scanForTwinDrift() {
+        fetch('/api/twin/' + patientId + '/drift_scan', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(function(res) { return res.json(); })
+        .then(function() {
+            window.location.reload();
+        });
+    }
+
+    function openCreateSnapshotModal() {
+        document.getElementById('snapshotModal').style.display = 'flex';
+    }
+    function closeCreateSnapshotModal() {
+        document.getElementById('snapshotModal').style.display = 'none';
+    }
+</script>
+{% endblock %}

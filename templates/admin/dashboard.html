@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .admin-stat-card {
+        background: var(--surface-color);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--border-color);
+        border-radius: 18px;
+        padding: 1.5rem;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-shadow: var(--shadow-sm);
+    }
+    .admin-stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--border-hover);
+    }
+    
+    .agent-status-pill {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.75rem 1rem;
+        background: var(--surface-muted);
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        transition: all 0.2s ease;
+    }
+    .agent-status-pill:hover {
+        background: var(--surface-hover);
+        border-color: var(--border-hover);
+    }
+
+    .pulse-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #10b981;
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        animation: pulse-green 2s infinite;
+        display: inline-block;
+    }
+    @keyframes pulse-green {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    .quick-action-btn {
+        padding: 0.6rem 1.1rem;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+</style>
+
+<!-- Executive Header -->
+<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.25rem;">
+            <h1 style="margin: 0; font-size: 2rem; color: var(--text-color);">Platform Intelligence Command</h1>
+            <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); display: flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.75rem; font-size: 0.8rem;">
+                <span class="pulse-dot"></span> System Optimal (99.9% Uptime)
+            </span>
+        </div>
+        <p style="color: var(--text-secondary); margin: 0; font-size: 0.95rem;">
+            Multi-Agent AI orchestration, Digital Twin synchronization fidelity, and clinical governance overview.
+        </p>
+    </div>
+
+    <!-- Quick Action Bar -->
+    <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+        <a href="{{ url_for('admin_users_add') }}" class="btn btn-primary quick-action-btn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Add User
+        </a>
+        <form action="{{ url_for('admin_agents_simulate') }}" method="POST" style="display:inline;">
+            <button type="submit" class="btn btn-outline quick-action-btn">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                Test Multi-Agent Flow
+            </button>
+        </form>
+        <form action="{{ url_for('admin_rag_reindex') }}" method="POST" style="display:inline;">
+            <button type="submit" class="btn btn-outline quick-action-btn">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                Re-Index RAG
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Primary Vital Metrics (4 Cards) -->
+<div class="grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; margin-bottom: 2rem;">
+    <!-- 1. Digital Twins -->
+    <div class="admin-stat-card">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary); font-weight: 600; letter-spacing: 0.5px;">Digital Twins</span>
+                <div style="font-size: 2.2rem; font-weight: 700; color: var(--text-color); line-height: 1.2; margin-top: 0.25rem;">{{ metrics.twins_created }}</div>
+            </div>
+            <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(59, 130, 246, 0.1); color: var(--primary-color); display: flex; align-items: center; justify-content: center;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+        </div>
+        <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; font-size: 0.8rem;">
+            <span style="color: #10b981; font-weight: 600;">{{ metrics.active_twins_sync }} Live Synced</span>
+            <a href="{{ url_for('admin_twins') }}" style="color: var(--primary-color); text-decoration: none; font-weight: 500;">Manage ➔</a>
+        </div>
+    </div>
+
+    <!-- 2. Medical Staff & Approvals -->
+    <div class="admin-stat-card">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary); font-weight: 600; letter-spacing: 0.5px;">Clinical Doctors</span>
+                <div style="font-size: 2.2rem; font-weight: 700; color: var(--primary-color); line-height: 1.2; margin-top: 0.25rem;">{{ metrics.total_doctors }}</div>
+            </div>
+            <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(139, 92, 246, 0.1); color: #8b5cf6; display: flex; align-items: center; justify-content: center;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </div>
+        </div>
+        <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; font-size: 0.8rem;">
+            {% if metrics.pending_doctors > 0 %}
+                <span style="color: #f59e0b; font-weight: 600;">{{ metrics.pending_doctors }} Pending Approval</span>
+            {% else %}
+                <span style="color: #10b981; font-weight: 500;">All Verified</span>
+            {% endif %}
+            <a href="{{ url_for('admin_users', role='doctor') }}" style="color: var(--primary-color); text-decoration: none; font-weight: 500;">Review ➔</a>
+        </div>
+    </div>
+
+    <!-- 3. Multi-Agent AI Core -->
+    <div class="admin-stat-card">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary); font-weight: 600; letter-spacing: 0.5px;">Multi-Agent AI</span>
+                <div style="font-size: 2.2rem; font-weight: 700; color: #10b981; line-height: 1.2; margin-top: 0.25rem;">{{ metrics.active_agents }} Active</div>
+            </div>
+            <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(16, 185, 129, 0.1); color: #10b981; display: flex; align-items: center; justify-content: center;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            </div>
+        </div>
+        <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; font-size: 0.8rem;">
+            <span style="color: var(--text-secondary);">Latency: 142ms</span>
+            <a href="{{ url_for('admin_agents') }}" style="color: var(--primary-color); text-decoration: none; font-weight: 500;">Orchestrator ➔</a>
+        </div>
+    </div>
+
+    <!-- 4. RAG Knowledge & Models -->
+    <div class="admin-stat-card">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary); font-weight: 600; letter-spacing: 0.5px;">RAG Vector Store</span>
+                <div style="font-size: 2.2rem; font-weight: 700; color: #0284c7; line-height: 1.2; margin-top: 0.25rem;">{{ "{:,}".format(metrics.rag_chunks) }}</div>
+            </div>
+            <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(2, 132, 199, 0.1); color: #0284c7; display: flex; align-items: center; justify-content: center;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            </div>
+        </div>
+        <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; font-size: 0.8rem;">
+            <span style="color: #10b981; font-weight: 500;">PubMedBERT + FAISS</span>
+            <a href="{{ url_for('admin_rag') }}" style="color: var(--primary-color); text-decoration: none; font-weight: 500;">Knowledge ➔</a>
+        </div>
+    </div>
+</div>
+
+<!-- Lower Section: Doctor Approvals, Multi-Agent Health, & Security Audit -->
+<div class="grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+    
+    <!-- Left Column: Governance & Multi-Agent Health -->
+    <div style="display: flex; flex-direction: column; gap: 2rem;">
+        
+        <!-- Doctor Approvals Card -->
+        <div class="glass-panel" style="padding: 1.75rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+                <h3 style="margin: 0; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg>
+                    Doctor Credential Verification
+                </h3>
+                <a href="{{ url_for('admin_users', role='doctor') }}" style="font-size: 0.8rem; color: var(--primary-color); text-decoration: none;">View All Doctors</a>
+            </div>
+
+            {% if pending_doctors %}
+                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    {% for doc in pending_doctors %}
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: var(--surface-muted); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 10px;">
+                        <div>
+                            <div style="font-weight: 600; color: var(--text-color); font-size: 0.9rem;">{{ doc.name }}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary);">{{ doc.specialization }} &bull; Lic: {{ doc.license_number }}</div>
+                        </div>
+                        <form action="{{ url_for('admin_doctor_approve', user_id=doc.id) }}" method="POST">
+                            <button type="submit" class="btn btn-primary" style="padding: 0.3rem 0.75rem; font-size: 0.8rem;">Approve</button>
+                        </form>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div style="padding: 1.5rem; text-align: center; color: var(--text-secondary); background: var(--surface-muted); border-radius: 12px; border: 1px dashed var(--border-color);">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" style="margin-bottom: 0.5rem;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    <div style="font-weight: 600; color: #10b981; font-size: 0.9rem;">All Doctor Credentials Verified</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">No pending registrations in queue.</div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Multi-Agent Telemetry Status -->
+        <div class="glass-panel" style="padding: 1.75rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+                <h3 style="margin: 0; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text-color);">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="12 8 8 12 12 16 12 8"/></svg>
+                    Multi-Agent AI Active Telemetry
+                </h3>
+                <a href="{{ url_for('admin_agents') }}" style="font-size: 0.8rem; color: var(--primary-color); text-decoration: none;">Manage Agents</a>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                {% for agent in agents_summary %}
+                <div class="agent-status-pill">
+                    <div>
+                        <div style="font-weight: 600; font-size: 0.85rem; color: var(--text-color);">{{ agent.name }}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary);">Success: {{ agent.success_rate }}%</div>
+                    </div>
+                    <span class="pulse-dot" title="Active in consensus pipeline"></span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Right Column: Security Audit -->
+    <div style="display: flex; flex-direction: column; gap: 2rem;">
+        
+        <!-- Security & Audit Trail -->
+        <div class="glass-panel" style="padding: 1.75rem; height: 100%;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+                <h3 style="margin: 0; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text-color);">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    Administrative Security & Audit Log
+                </h3>
+                <a href="{{ url_for('admin_audit') }}" style="font-size: 0.8rem; color: var(--primary-color); text-decoration: none;">Full Audit Trail</a>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+                {% for audit in recent_audits %}
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; padding: 0.5rem 0; border-bottom: 1px solid var(--border-color);">
+                    <div>
+                        <span style="font-weight: 600; color: var(--text-color);">{{ audit.action }}</span>
+                        <span style="color: var(--text-secondary); font-size: 0.75rem;">by {{ audit.user_name or 'Admin' }}</span>
+                    </div>
+                    <span style="color: var(--text-secondary); font-size: 0.75rem; white-space: nowrap;">{{ audit.timestamp[:16] if audit.timestamp else 'Recently' }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

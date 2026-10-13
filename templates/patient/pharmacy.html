@@ -1,0 +1,1159 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    /* =========================================================================
+       PHARMACY & RX INTELLIGENCE MODULE DESIGN SYSTEM
+       ========================================================================= */
+    .vital-grid-modern {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.25rem;
+        margin-bottom: 2rem;
+    }
+
+    @media (max-width: 1100px) {
+        .vital-grid-modern {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    @media (max-width: 640px) {
+        .vital-grid-modern {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .patient-vital-card-pro {
+        background: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        padding: 1.5rem;
+        transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .patient-vital-card-pro:hover {
+        transform: translateY(-3px);
+        border-color: var(--border-hover);
+        box-shadow: var(--shadow-md);
+    }
+
+    .vital-icon-box {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.35rem;
+        flex-shrink: 0;
+        box-shadow: var(--shadow-sm);
+    }
+
+    /* Tab Bar */
+    .pharmacy-nav-tabs {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+        overflow-x: auto;
+        padding: 0.45rem;
+        background: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        flex-wrap: wrap;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .pharmacy-tab-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.55rem;
+        padding: 0.7rem 1.25rem;
+        font-size: 0.88rem;
+        font-weight: 700;
+        border-radius: 12px;
+        text-decoration: none;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        white-space: nowrap;
+        background: transparent;
+        color: var(--text-secondary);
+        border: none;
+        cursor: pointer;
+    }
+
+    .pharmacy-tab-btn svg {
+        color: var(--text-muted);
+        transition: all 0.2s ease;
+    }
+
+    .pharmacy-tab-btn:hover {
+        background: var(--surface-hover);
+        color: var(--primary-color);
+        transform: translateY(-1px);
+    }
+
+    .pharmacy-tab-btn:hover svg {
+        color: var(--primary-color);
+        transform: scale(1.1);
+    }
+
+    .pharmacy-tab-btn.active {
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        color: #ffffff;
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+    }
+
+    .pharmacy-tab-btn.active svg {
+        color: #ffffff;
+    }
+
+    /* Cards */
+    .rx-grid-card {
+        background: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        padding: 1.75rem;
+        transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        position: relative;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .rx-grid-card:hover {
+        transform: translateY(-3px);
+        border-color: var(--border-hover);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .schedule-slot-box {
+        background: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        padding: 1.5rem;
+        transition: all 0.25s ease;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .schedule-slot-box:hover {
+        border-color: var(--border-hover);
+        box-shadow: var(--shadow-md);
+    }
+
+    .schedule-med-item {
+        background: var(--card-inner-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        padding: 1.1rem;
+        margin-bottom: 0.85rem;
+        transition: all 0.2s ease;
+    }
+
+    .form-control-custom {
+        width: 100%;
+        padding: 0.7rem 0.9rem;
+        border-radius: 12px;
+        border: 1.5px solid var(--border-color);
+        font-size: 0.9rem;
+        background: var(--input-bg);
+        color: var(--input-color);
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .form-control-custom:focus {
+        border-color: var(--primary-color);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+    }
+</style>
+
+<!-- Dashboard Header -->
+<div class="dashboard-header" style="margin-bottom: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1.25rem;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.35rem; flex-wrap: wrap;">
+                <h1 style="margin: 0; font-size: 1.85rem; font-weight: 800; letter-spacing: -0.5px; color: var(--heading-color);">
+                    Pharmacy & Medication Intelligence
+                </h1>
+                <span class="badge badge-green" style="font-weight: 700; font-size: 0.78rem;">
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+                    Live Digital Twin Synced
+                </span>
+            </div>
+            <p style="color: var(--text-secondary); margin: 0; font-size: 0.92rem;">
+                Connects prescriptions, real-time medicine availability, chronotherapy dosage schedules, adherence tracking, and AI pharmacology safety screening.
+            </p>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;">
+            <span class="badge badge-blue" style="font-size: 0.8rem; padding: 0.35rem 0.75rem; font-weight: 700;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                AI Pharmacist Verified
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- 4 Key Vitals / Metric Cards Grid -->
+<div class="vital-grid-modern">
+    <!-- Metric 1: Active Prescriptions -->
+    <div class="patient-vital-card-pro">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Active Prescriptions</div>
+                <div style="font-size: 2.2rem; font-weight: 800; color: var(--heading-color); margin: 0.35rem 0; line-height: 1;">
+                    {{ active_prescriptions | length }} <span style="font-size: 0.9rem; color: var(--text-muted); font-weight: 600;">Regimens</span>
+                </div>
+            </div>
+            <div class="vital-icon-box" style="background: var(--badge-blue-bg); color: var(--primary-color);">
+                💊
+            </div>
+        </div>
+        <div style="font-size: 0.8rem; color: var(--text-secondary); display: flex; align-items: center; gap: 0.45rem; margin-top: 0.75rem;">
+            <span class="badge badge-green" style="padding: 0.15rem 0.45rem; font-size: 0.72rem; font-weight: 700;">✓ Verified</span>
+            <span>{{ history_prescriptions | length }} in medical history</span>
+        </div>
+    </div>
+
+    <!-- Metric 2: Adherence Score -->
+    <div class="patient-vital-card-pro">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">30-Day Adherence</div>
+                <div style="font-size: 2.2rem; font-weight: 800; color: var(--success-color); margin: 0.35rem 0; line-height: 1;">
+                    {{ adherence_data.rate_30d }}<span style="font-size: 1.2rem;">%</span>
+                </div>
+            </div>
+            <div class="vital-icon-box" style="background: var(--badge-green-bg); color: var(--success-color);">
+                📈
+            </div>
+        </div>
+        <div style="font-size: 0.8rem; color: var(--text-secondary); display: flex; align-items: center; gap: 0.45rem; margin-top: 0.75rem;">
+            <span class="badge badge-green" style="padding: 0.15rem 0.45rem; font-size: 0.72rem; font-weight: 700;">🔥 {{ adherence_data.streak_days }}d Streak</span>
+            <span>7-Day: {{ adherence_data.rate_7d }}%</span>
+        </div>
+    </div>
+
+    <!-- Metric 3: Digital Twin Impact -->
+    <div class="patient-vital-card-pro">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Twin Biomarker Sync</div>
+                <div style="font-size: 2.2rem; font-weight: 800; color: #38bdf8; margin: 0.35rem 0; line-height: 1;">
+                    {{ adherence_data.twin_impact.score_delta }}
+                </div>
+            </div>
+            <div class="vital-icon-box" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8;">
+                🧬
+            </div>
+        </div>
+        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.75rem;">
+            {{ adherence_data.twin_impact.status }} ({{ sync_data.score }}% sync)
+        </div>
+    </div>
+
+    <!-- Metric 4: AI Safety Guardian -->
+    <div class="patient-vital-card-pro">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">AI Safety Guardian</div>
+                {% set crit_warnings = warnings | selectattr('severity', 'equalto', 'critical') | list %}
+                <div style="font-size: 1.85rem; font-weight: 800; color: {{ 'var(--danger-color)' if crit_warnings else 'var(--success-color)' }}; margin: 0.35rem 0; line-height: 1.1;">
+                    {{ '1 Alert Flagged' if crit_warnings else 'Shield Active' }}
+                </div>
+            </div>
+            <div class="vital-icon-box" style="background: {{ 'var(--badge-red-bg)' if crit_warnings else 'var(--badge-green-bg)' }}; color: {{ 'var(--danger-color)' if crit_warnings else 'var(--success-color)' }};">
+                {{ '⚠️' if crit_warnings else '🛡️' }}
+            </div>
+        </div>
+        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.75rem;">
+            {{ warnings | length }} safety parameters screened
+        </div>
+    </div>
+</div>
+
+<!-- Navigation Tabs -->
+<div class="pharmacy-nav-tabs">
+    <button onclick="switchTab('tab-prescriptions')" id="btn-tab-prescriptions" class="pharmacy-tab-btn active">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M10.5 20.5l10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg>
+        View Prescriptions ({{ active_prescriptions | length }})
+    </button>
+    <button onclick="switchTab('tab-schedule')" id="btn-tab-schedule" class="pharmacy-tab-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Dosage & Schedule
+    </button>
+    <button onclick="switchTab('tab-availability')" id="btn-tab-availability" class="pharmacy-tab-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        Medicine Availability
+    </button>
+    <button onclick="switchTab('tab-adherence')" id="btn-tab-adherence" class="pharmacy-tab-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        Adherence Tracking
+    </button>
+    <button onclick="switchTab('tab-warnings')" id="btn-tab-warnings" class="pharmacy-tab-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Warning Detection ({{ warnings | length }})
+    </button>
+    <button onclick="switchTab('tab-history')" id="btn-tab-history" class="pharmacy-tab-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+        Medication History ({{ history_prescriptions | length }})
+    </button>
+</div>
+
+<!-- ========================================================================= -->
+<!-- TAB 1: VIEW PRESCRIPTIONS -->
+<!-- ========================================================================= -->
+<div id="tab-prescriptions" class="tab-content" style="display: block;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h2 style="margin: 0; font-size: 1.35rem; color: var(--heading-color); font-weight: 800;">Active Digital Prescriptions</h2>
+            <p style="margin: 0.25rem 0 0; font-size: 0.88rem; color: var(--text-secondary);">Verified medications authorized by your attending physician with multi-agent safety cross-matching.</p>
+        </div>
+        <span class="badge badge-blue" style="font-size: 0.8rem; padding: 0.35rem 0.75rem; font-weight: 700;">
+            Hospital Central Dispensary Connected
+        </span>
+    </div>
+
+    {% if active_prescriptions %}
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.5rem;">
+        {% for rx in active_prescriptions %}
+        <div class="rx-grid-card">
+            <div>
+                <!-- Top Header -->
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem;">
+                    <div style="display: flex; align-items: center; gap: 0.85rem;">
+                        <div style="width: 48px; height: 48px; border-radius: 14px; background: var(--badge-blue-bg); color: var(--primary-color); display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">
+                            💊
+                        </div>
+                        <div>
+                            <h3 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: var(--heading-color);">{{ rx.medication_name }}</h3>
+                            <div style="font-size: 0.82rem; color: var(--text-muted);">{{ rx.generic_name or rx.medication_name }} &bull; {{ rx.dosage_form }} ({{ rx.route }})</div>
+                        </div>
+                    </div>
+                    <div>
+                        {% if rx.verification_status == 'verified' %}
+                        <span class="badge badge-green" style="font-size: 0.75rem; font-weight: 700;">
+                            ✓ Verified
+                        </span>
+                        {% else %}
+                        <span class="badge badge-red" style="font-size: 0.75rem; font-weight: 700;">
+                            Flagged Review
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Dosage & Instructions Box -->
+                <div class="profile-info-box" style="border-radius: 14px; padding: 1.15rem; margin-bottom: 1.25rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.45rem;">
+                        <span style="font-size: 0.78rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Dosage Strength</span>
+                        <span style="font-size: 0.92rem; font-weight: 700; color: var(--primary-color);">{{ rx.dosage }}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.45rem;">
+                        <span style="font-size: 0.78rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Frequency / Timing</span>
+                        <span style="font-size: 0.88rem; font-weight: 600; color: var(--text-color);">{{ rx.frequency }} ({{ rx.schedule_timing }})</span>
+                    </div>
+                    <div style="font-size: 0.84rem; color: var(--text-secondary); border-top: 1px dashed var(--border-color); padding-top: 0.5rem; margin-top: 0.5rem; line-height: 1.45;">
+                        <strong style="color: var(--heading-color);">Directions:</strong> {{ rx.instructions or 'Take as directed by physician.' }}
+                    </div>
+                </div>
+
+                <!-- Metadata details -->
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+                    <div>
+                        <div>Prescribing Doctor:</div>
+                        <div style="font-weight: 700; color: var(--text-color);">Dr. {{ rx.doctor_name or 'Robert Evans' }}</div>
+                    </div>
+                    <div>
+                        <div>Rx Authorization #:</div>
+                        <div style="font-weight: 700; color: var(--primary-color); font-family: monospace;">{{ rx.rx_number }}</div>
+                    </div>
+                    <div>
+                        <div>Refills Remaining:</div>
+                        <div style="font-weight: 800; color: {{ 'var(--success-color)' if rx.refills_remaining > 0 else 'var(--danger-color)' }};">
+                            <span id="refills-count-{{ rx.id }}">{{ rx.refills_remaining }}</span> / {{ rx.refill_count }}
+                        </div>
+                    </div>
+                    <div>
+                        <div>Twin Health Impact:</div>
+                        <div style="font-weight: 800; color: var(--success-color);">+{{ rx.twin_impact_score }} Points</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div style="display: flex; gap: 0.65rem; border-top: 1px solid var(--border-color); padding-top: 1.15rem;">
+                <button onclick="requestRefill({{ rx.id }}, '{{ rx.medication_name }}')" class="btn btn-primary" style="flex: 1; padding: 0.65rem 0.95rem; font-size: 0.86rem; font-weight: 700; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                    Request Refill
+                </button>
+                <button onclick="openVerificationModal({{ rx.id }})" class="btn btn-outline" style="padding: 0.65rem 1rem; font-size: 0.86rem; font-weight: 600; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+                    Verify
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="glass-panel" style="padding: 3.5rem 2rem; text-align: center; border-radius: 22px;">
+        <div style="font-size: 3rem; margin-bottom: 0.85rem;">📋</div>
+        <h3 style="color: var(--heading-color); margin: 0 0 0.5rem; font-weight: 700;">No Active Prescriptions</h3>
+        <p style="color: var(--text-muted); font-size: 0.92rem; max-width: 500px; margin: 0 auto 1.5rem;">Your digital twin currently has no active prescriptions assigned. Your attending physician can prescribe regimens through the clinical portal.</p>
+        <button onclick="switchTab('tab-availability')" class="btn btn-primary" style="padding: 0.65rem 1.4rem; font-weight: 700; border-radius: 12px;">
+            Browse Dispensary Catalog
+        </button>
+    </div>
+    {% endif %}
+</div>
+
+<!-- ========================================================================= -->
+<!-- TAB 2: 24H DOSAGE & CHRONOTHERAPY SCHEDULE -->
+<!-- ========================================================================= -->
+<div id="tab-schedule" class="tab-content" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h2 style="margin: 0; font-size: 1.35rem; color: var(--heading-color); font-weight: 800;">24-Hour Medication Schedule & Chronotherapy</h2>
+            <p style="margin: 0.25rem 0 0; font-size: 0.88rem; color: var(--text-secondary);">Timed administration intervals calculated for optimal biological receptor absorption & circadian blood pressure control.</p>
+        </div>
+        <span class="badge badge-green" style="font-weight: 700;">
+            Today: Active Schedule
+        </span>
+    </div>
+
+    <!-- 4 Chronotherapy Time Blocks Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+        <!-- Morning -->
+        <div class="schedule-slot-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+                <div style="display: flex; align-items: center; gap: 0.65rem;">
+                    <span style="font-size: 1.5rem;">🌅</span>
+                    <div>
+                        <h3 style="margin: 0; font-size: 1.05rem; font-weight: 800; color: var(--heading-color);">Morning</h3>
+                        <div style="font-size: 0.76rem; color: var(--text-muted);">08:00 AM &bull; With Breakfast</div>
+                    </div>
+                </div>
+                <span class="badge badge-blue" style="font-size: 0.74rem; font-weight: 700;">{{ schedule_by_slot['Morning'] | length }} Meds</span>
+            </div>
+
+            {% if schedule_by_slot['Morning'] %}
+            {% for item in schedule_by_slot['Morning'] %}
+            <div id="dose-card-{{ item.id }}" class="schedule-med-item" style="border-color: {{ 'rgba(16, 185, 129, 0.4)' if item.status == 'taken' else 'var(--border-color)' }};">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.4rem;">
+                    <div>
+                        <div style="font-weight: 700; color: var(--heading-color); font-size: 0.95rem;">{{ item.medication_name }}</div>
+                        <div style="font-size: 0.78rem; color: var(--text-muted);">{{ item.dosage }} &bull; {{ item.route }}</div>
+                    </div>
+                    <span id="badge-status-{{ item.id }}" class="badge {{ 'badge-green' if item.status == 'taken' else ('badge-red' if item.status == 'missed' else 'badge-amber') }}" style="font-size: 0.72rem; padding: 0.15rem 0.45rem; font-weight: 700;">
+                        {{ item.status | upper }}
+                    </span>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.75rem;">{{ item.instructions }}</div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button onclick="logDose({{ item.prescription_id }}, 'taken', {{ item.id }})" class="btn btn-primary" style="flex: 1; padding: 0.4rem; font-size: 0.78rem; font-weight: 700; border-radius: 8px;">
+                        ✓ Mark Taken
+                    </button>
+                    <button onclick="logDose({{ item.prescription_id }}, 'missed', {{ item.id }})" class="btn btn-outline" style="padding: 0.4rem 0.65rem; font-size: 0.78rem; border-color: rgba(239, 68, 68, 0.4); color: var(--danger-color); border-radius: 8px;">
+                        Missed
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div style="color: var(--text-muted); font-size: 0.82rem; text-align: center; padding: 1.75rem 0;">No morning medications scheduled.</div>
+            {% endif %}
+        </div>
+
+        <!-- Midday -->
+        <div class="schedule-slot-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+                <div style="display: flex; align-items: center; gap: 0.65rem;">
+                    <span style="font-size: 1.5rem;">☀️</span>
+                    <div>
+                        <h3 style="margin: 0; font-size: 1.05rem; font-weight: 800; color: var(--heading-color);">Midday</h3>
+                        <div style="font-size: 0.76rem; color: var(--text-muted);">01:00 PM &bull; With Lunch</div>
+                    </div>
+                </div>
+                <span class="badge badge-blue" style="font-size: 0.74rem; font-weight: 700;">{{ schedule_by_slot['Midday'] | length }} Meds</span>
+            </div>
+
+            {% if schedule_by_slot['Midday'] %}
+            {% for item in schedule_by_slot['Midday'] %}
+            <div id="dose-card-{{ item.id }}" class="schedule-med-item" style="border-color: {{ 'rgba(16, 185, 129, 0.4)' if item.status == 'taken' else 'var(--border-color)' }};">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.4rem;">
+                    <div>
+                        <div style="font-weight: 700; color: var(--heading-color); font-size: 0.95rem;">{{ item.medication_name }}</div>
+                        <div style="font-size: 0.78rem; color: var(--text-muted);">{{ item.dosage }} &bull; {{ item.route }}</div>
+                    </div>
+                    <span id="badge-status-{{ item.id }}" class="badge {{ 'badge-green' if item.status == 'taken' else ('badge-red' if item.status == 'missed' else 'badge-amber') }}" style="font-size: 0.72rem; padding: 0.15rem 0.45rem; font-weight: 700;">
+                        {{ item.status | upper }}
+                    </span>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.75rem;">{{ item.instructions }}</div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button onclick="logDose({{ item.prescription_id }}, 'taken', {{ item.id }})" class="btn btn-primary" style="flex: 1; padding: 0.4rem; font-size: 0.78rem; font-weight: 700; border-radius: 8px;">
+                        ✓ Mark Taken
+                    </button>
+                    <button onclick="logDose({{ item.prescription_id }}, 'missed', {{ item.id }})" class="btn btn-outline" style="padding: 0.4rem 0.65rem; font-size: 0.78rem; border-color: rgba(239, 68, 68, 0.4); color: var(--danger-color); border-radius: 8px;">
+                        Missed
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div style="color: var(--text-muted); font-size: 0.82rem; text-align: center; padding: 1.75rem 0;">No midday medications scheduled.</div>
+            {% endif %}
+        </div>
+
+        <!-- Evening -->
+        <div class="schedule-slot-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+                <div style="display: flex; align-items: center; gap: 0.65rem;">
+                    <span style="font-size: 1.5rem;">🌆</span>
+                    <div>
+                        <h3 style="margin: 0; font-size: 1.05rem; font-weight: 800; color: var(--heading-color);">Evening</h3>
+                        <div style="font-size: 0.76rem; color: var(--text-muted);">07:00 PM &bull; With Dinner</div>
+                    </div>
+                </div>
+                <span class="badge badge-blue" style="font-size: 0.74rem; font-weight: 700;">{{ schedule_by_slot['Evening'] | length }} Meds</span>
+            </div>
+
+            {% if schedule_by_slot['Evening'] %}
+            {% for item in schedule_by_slot['Evening'] %}
+            <div id="dose-card-{{ item.id }}" class="schedule-med-item" style="border-color: {{ 'rgba(16, 185, 129, 0.4)' if item.status == 'taken' else 'var(--border-color)' }};">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.4rem;">
+                    <div>
+                        <div style="font-weight: 700; color: var(--heading-color); font-size: 0.95rem;">{{ item.medication_name }}</div>
+                        <div style="font-size: 0.78rem; color: var(--text-muted);">{{ item.dosage }} &bull; {{ item.route }}</div>
+                    </div>
+                    <span id="badge-status-{{ item.id }}" class="badge {{ 'badge-green' if item.status == 'taken' else ('badge-red' if item.status == 'missed' else 'badge-amber') }}" style="font-size: 0.72rem; padding: 0.15rem 0.45rem; font-weight: 700;">
+                        {{ item.status | upper }}
+                    </span>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.75rem;">{{ item.instructions }}</div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button onclick="logDose({{ item.prescription_id }}, 'taken', {{ item.id }})" class="btn btn-primary" style="flex: 1; padding: 0.4rem; font-size: 0.78rem; font-weight: 700; border-radius: 8px;">
+                        ✓ Mark Taken
+                    </button>
+                    <button onclick="logDose({{ item.prescription_id }}, 'missed', {{ item.id }})" class="btn btn-outline" style="padding: 0.4rem 0.65rem; font-size: 0.78rem; border-color: rgba(239, 68, 68, 0.4); color: var(--danger-color); border-radius: 8px;">
+                        Missed
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div style="color: var(--text-muted); font-size: 0.82rem; text-align: center; padding: 1.75rem 0;">No evening medications scheduled.</div>
+            {% endif %}
+        </div>
+
+        <!-- Bedtime -->
+        <div class="schedule-slot-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+                <div style="display: flex; align-items: center; gap: 0.65rem;">
+                    <span style="font-size: 1.5rem;">🌙</span>
+                    <div>
+                        <h3 style="margin: 0; font-size: 1.05rem; font-weight: 800; color: var(--heading-color);">Bedtime</h3>
+                        <div style="font-size: 0.76rem; color: var(--text-muted);">10:00 PM &bull; Before Sleep</div>
+                    </div>
+                </div>
+                <span class="badge badge-blue" style="font-size: 0.74rem; font-weight: 700;">{{ schedule_by_slot['Bedtime'] | length }} Meds</span>
+            </div>
+
+            {% if schedule_by_slot['Bedtime'] %}
+            {% for item in schedule_by_slot['Bedtime'] %}
+            <div id="dose-card-{{ item.id }}" class="schedule-med-item" style="border-color: {{ 'rgba(16, 185, 129, 0.4)' if item.status == 'taken' else 'var(--border-color)' }};">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.4rem;">
+                    <div>
+                        <div style="font-weight: 700; color: var(--heading-color); font-size: 0.95rem;">{{ item.medication_name }}</div>
+                        <div style="font-size: 0.78rem; color: var(--text-muted);">{{ item.dosage }} &bull; {{ item.route }}</div>
+                    </div>
+                    <span id="badge-status-{{ item.id }}" class="badge {{ 'badge-green' if item.status == 'taken' else ('badge-red' if item.status == 'missed' else 'badge-amber') }}" style="font-size: 0.72rem; padding: 0.15rem 0.45rem; font-weight: 700;">
+                        {{ item.status | upper }}
+                    </span>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.75rem;">{{ item.instructions }}</div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button onclick="logDose({{ item.prescription_id }}, 'taken', {{ item.id }})" class="btn btn-primary" style="flex: 1; padding: 0.4rem; font-size: 0.78rem; font-weight: 700; border-radius: 8px;">
+                        ✓ Mark Taken
+                    </button>
+                    <button onclick="logDose({{ item.prescription_id }}, 'missed', {{ item.id }})" class="btn btn-outline" style="padding: 0.4rem 0.65rem; font-size: 0.78rem; border-color: rgba(239, 68, 68, 0.4); color: var(--danger-color); border-radius: 8px;">
+                        Missed
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div style="color: var(--text-muted); font-size: 0.82rem; text-align: center; padding: 1.75rem 0;">No bedtime medications scheduled.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Chronotherapy Guidelines Panel -->
+    <div class="glass-panel" style="padding: 1.75rem; border-radius: 20px; box-shadow: var(--shadow-sm);">
+        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+            <span style="font-size: 1.4rem;">🧬</span>
+            <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: var(--heading-color);">Circadian Chronotherapy Rationale</h3>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem;">
+            <div class="profile-info-box" style="padding: 1.15rem 1.25rem; border-radius: 14px;">
+                <strong style="color: var(--primary-color);">Atorvastatin (Bedtime Rule):</strong>
+                <p style="margin: 0.35rem 0 0; font-size: 0.86rem; color: var(--text-secondary); line-height: 1.45;">Hepatic HMG-CoA reductase enzymatic synthesis peaks during sleep (midnight to 04:00 AM). Evening dosing provides 32% greater LDL-C clearance compared to morning dosing.</p>
+            </div>
+            <div class="profile-info-box" style="padding: 1.15rem 1.25rem; border-radius: 14px;">
+                <strong style="color: var(--primary-color);">Lisinopril (Morning Dipping Rule):</strong>
+                <p style="margin: 0.35rem 0 0; font-size: 0.86rem; color: var(--text-secondary); line-height: 1.45;">Morning administration optimizes daytime RAAS blockade while safeguarding physiological nocturnal BP dipping curves detected by your smartwatch telemetry.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- TAB 3: MEDICINE AVAILABILITY -->
+<!-- ========================================================================= -->
+<div id="tab-availability" class="tab-content" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h2 style="margin: 0; font-size: 1.35rem; color: var(--heading-color); font-weight: 800;">Dispensary Stock & Medicine Availability</h2>
+            <p style="margin: 0.25rem 0 0; font-size: 0.88rem; color: var(--text-secondary);">Real-time inventory lookup for Hospital Central Pharmacy dispensary and generic substitutes.</p>
+        </div>
+    </div>
+
+    <!-- Search & Filters -->
+    <div class="glass-panel" style="padding: 1.25rem 1.5rem; border-radius: 18px; margin-bottom: 1.5rem; box-shadow: var(--shadow-sm);">
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 1rem;">
+            <div>
+                <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Search Medication or NDC</label>
+                <input type="text" id="inventorySearch" oninput="filterInventory()" class="form-control-custom" placeholder="Search by name, NDC, manufacturer..." style="margin-top: 0.35rem;">
+            </div>
+            <div>
+                <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Category</label>
+                <select id="categoryFilter" onchange="filterInventory()" class="form-control-custom" style="margin-top: 0.35rem;">
+                    <option value="all">All Categories</option>
+                    <option value="Cardiovascular">Cardiovascular</option>
+                    <option value="Antidiabetic">Antidiabetic</option>
+                    <option value="Antibiotic">Antibiotics</option>
+                    <option value="Analgesic">Analgesics & NSAIDs</option>
+                    <option value="Respiratory">Respiratory</option>
+                    <option value="Supplement">Supplements</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Availability Status</label>
+                <select id="stockFilter" onchange="filterInventory()" class="form-control-custom" style="margin-top: 0.35rem;">
+                    <option value="all">All Statuses</option>
+                    <option value="in_stock">In Stock</option>
+                    <option value="low_stock">Low Stock</option>
+                    <option value="out_of_stock">Out of Stock</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="glass-panel" style="border-radius: 20px; overflow: hidden; box-shadow: var(--shadow-sm);">
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem; text-align: left;">
+                <thead>
+                    <tr style="background: var(--table-th-bg); border-bottom: 1.5px solid var(--border-color); color: var(--table-th-color); font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <th style="padding: 1rem 1.25rem;">Medication & Form</th>
+                        <th style="padding: 1rem 1.25rem;">Category</th>
+                        <th style="padding: 1rem 1.25rem;">NDC Code & Batch</th>
+                        <th style="padding: 1rem 1.25rem;">Stock & Location</th>
+                        <th style="padding: 1rem 1.25rem;">Co-Pay</th>
+                        <th style="padding: 1rem 1.25rem;">Status</th>
+                        <th style="padding: 1rem 1.25rem;">Generic Substitute</th>
+                    </tr>
+                </thead>
+                <tbody id="inventoryTableBody">
+                    {% for item in inventory %}
+                    <tr class="inventory-row" data-name="{{ item.medication_name | lower }}" data-category="{{ item.category | lower }}" data-status="{{ item.status }}" style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: 1.1rem 1.25rem;">
+                            <div style="font-weight: 700; color: var(--heading-color);">{{ item.medication_name }} <span style="color: var(--primary-color);">{{ item.dosage_strength }}</span></div>
+                            <div style="font-size: 0.78rem; color: var(--text-muted);">{{ item.generic_name }} &bull; {{ item.dosage_form }}</div>
+                        </td>
+                        <td style="padding: 1.1rem 1.25rem;">
+                            <span class="badge badge-blue" style="font-size: 0.75rem; font-weight: 700;">{{ item.category }}</span>
+                        </td>
+                        <td style="padding: 1.1rem 1.25rem; font-size: 0.82rem; color: var(--text-secondary);">
+                            <div style="font-family: monospace; color: var(--text-color); font-weight: 600;">{{ item.ndc_code }}</div>
+                            <div style="color: var(--text-muted); font-size: 0.75rem;">Exp: {{ item.expiry_date }}</div>
+                        </td>
+                        <td style="padding: 1.1rem 1.25rem;">
+                            <div style="font-weight: 800; color: {{ 'var(--success-color)' if item.stock_quantity > item.min_threshold else ('var(--warning-color)' if item.stock_quantity > 0 else 'var(--danger-color)') }};">
+                                {{ item.stock_quantity }} units
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">{{ item.location_shelf }}</div>
+                        </td>
+                        <td style="padding: 1.1rem 1.25rem;">
+                            <div style="font-weight: 800; color: var(--heading-color);">${{ "%.2f"|format(item.copay_amount) }}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">${{ "%.2f"|format(item.unit_price) }} retail</div>
+                        </td>
+                        <td style="padding: 1.1rem 1.25rem;">
+                            {% if item.status == 'in_stock' %}
+                            <span class="badge badge-green" style="font-size: 0.74rem; font-weight: 700;">● In Stock</span>
+                            {% elif item.status == 'low_stock' %}
+                            <span class="badge badge-amber" style="font-size: 0.74rem; font-weight: 700;">▲ Low Stock</span>
+                            {% else %}
+                            <span class="badge badge-red" style="font-size: 0.74rem; font-weight: 700;">✕ Out of Stock</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 1.1rem 1.25rem; font-size: 0.82rem; color: var(--text-secondary);">
+                            {{ item.substitute_medication or 'None documented' }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- TAB 4: ADHERENCE TRACKING -->
+<!-- ========================================================================= -->
+<div id="tab-adherence" class="tab-content" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h2 style="margin: 0; font-size: 1.35rem; color: var(--heading-color); font-weight: 800;">Medication Adherence Tracking</h2>
+            <p style="margin: 0.25rem 0 0; font-size: 0.88rem; color: var(--text-secondary);">Longitudinal telemetry tracking how consistent medication intake stabilizes your Digital Twin.</p>
+        </div>
+        <span class="badge badge-green" style="font-weight: 700;">
+            7-Day Rate: {{ adherence_data.rate_7d }}%
+        </span>
+    </div>
+
+    <!-- 7-Day Calendar Strip -->
+    <div class="glass-panel" style="padding: 1.75rem; border-radius: 20px; margin-bottom: 1.75rem; box-shadow: var(--shadow-sm);">
+        <h3 style="margin: 0 0 1.25rem 0; font-size: 1.1rem; font-weight: 800;">Past 7-Day Compliance History</h3>
+        <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.75rem;">
+            {% for day in adherence_data.calendar_days %}
+            <div class="profile-info-box" style="border: 1.5px solid {{ 'var(--primary-color)' if day.is_today else ('rgba(16, 185, 129, 0.4)' if day.status == 'all_taken' else ('rgba(239, 68, 68, 0.4)' if day.status == 'has_missed' else 'var(--border-color)')) }}; border-radius: 14px; padding: 1rem 0.5rem; text-align: center; position: relative;">
+                {% if day.is_today %}
+                <span class="badge badge-blue" style="position: absolute; top: -9px; left: 50%; transform: translateX(-50%); font-size: 0.65rem; padding: 0.1rem 0.45rem; font-weight: 800;">TODAY</span>
+                {% endif %}
+                <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">{{ day.day_name }}</div>
+                <div style="font-size: 1.45rem; font-weight: 800; color: var(--heading-color); margin: 0.25rem 0;">{{ day.day_num }}</div>
+                <div style="font-size: 1.2rem;">
+                    {% if day.status == 'all_taken' %}
+                    <span style="color: var(--success-color);">✓</span>
+                    {% elif day.status == 'has_missed' %}
+                    <span style="color: var(--danger-color);">✕</span>
+                    {% else %}
+                    <span style="color: var(--warning-color);">⏳</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 2 Column Layout: Twin Impact & Dose Activity Log -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 1.75rem;">
+        <!-- Left: Twin Impact -->
+        <div class="glass-panel" style="padding: 1.75rem; border-radius: 20px; box-shadow: var(--shadow-sm);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.65rem;">
+                <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800;">Biomarker Stability</h3>
+                <span class="badge badge-green" style="font-weight: 700;">{{ adherence_data.twin_impact.status }}</span>
+            </div>
+            <div class="profile-info-box" style="padding: 1.25rem; border-radius: 14px; margin-bottom: 1.25rem;">
+                <div style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.55;">
+                    {{ adherence_data.twin_impact.summary }}
+                </div>
+            </div>
+            <p style="font-size: 0.84rem; color: var(--text-muted); line-height: 1.5; margin: 0;">
+                <strong style="color: var(--heading-color);">Predictive Trajectory:</strong> Sustained >90% adherence maintains vascular compliance in your digital twin, suppressing 10-year CVD risk estimates by -24%.
+            </p>
+        </div>
+
+        <!-- Right: Log History -->
+        <div class="glass-panel" style="padding: 1.75rem; border-radius: 20px; box-shadow: var(--shadow-sm);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.65rem;">
+                <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800;">Dose Verification Activity Log</h3>
+                <span class="badge badge-blue" style="font-weight: 700;">Recent Logs</span>
+            </div>
+            <div style="max-height: 280px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.65rem;">
+                {% for log in adherence_data.recent_logs %}
+                <div class="profile-info-box" style="border-radius: 12px; padding: 0.85rem 1rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.84rem;">
+                    <div>
+                        <div style="font-weight: 700; color: var(--heading-color);">{{ log.medication_name }} ({{ log.scheduled_slot }})</div>
+                        <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 0.15rem;">{{ log.adherence_date }} &bull; {{ log.scheduled_time }}</div>
+                    </div>
+                    <span class="badge {{ 'badge-green' if log.status == 'taken' else ('badge-red' if log.status == 'missed' else 'badge-amber') }}" style="font-size: 0.74rem; font-weight: 700;">
+                        {{ log.status | upper }}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- TAB 5: POTENTIAL WARNING DETECTION & LIVE SCANNER -->
+<!-- ========================================================================= -->
+<div id="tab-warnings" class="tab-content" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h2 style="margin: 0; font-size: 1.35rem; color: var(--heading-color); font-weight: 800;">Potential Medication-Related Warning Detection</h2>
+            <p style="margin: 0.25rem 0 0; font-size: 0.88rem; color: var(--text-secondary);">Real-time multi-agent pharmacology screening for drug-drug interactions (DDI), allergy conflicts, and organ clearance limits.</p>
+        </div>
+        <span class="badge badge-amber" style="font-weight: 700;">AI Pharmacology Guardian</span>
+    </div>
+
+    <!-- Live AI Drug Interaction Simulator -->
+    <div class="glass-panel" style="padding: 2rem; border-radius: 20px; margin-bottom: 2rem; box-shadow: var(--shadow-sm);">
+        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.15rem;">
+            <div style="width: 42px; height: 42px; border-radius: 12px; background: var(--badge-blue-bg); color: var(--primary-color); display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                🧪
+            </div>
+            <div>
+                <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: var(--heading-color);">Live AI Drug Interaction & Allergy Simulator</h3>
+                <p style="margin: 0.15rem 0 0; font-size: 0.84rem; color: var(--text-muted);">Test any prospective OTC drug, supplement, or new prescription against your active Digital Twin profile.</p>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap;">
+            <input type="text" id="simulatorDrugInput" class="form-control-custom" placeholder="Enter medication to test (e.g. Amoxicillin, Ibuprofen, Spironolactone, Warfarin)..." style="flex: 1; min-width: 280px;">
+            <button onclick="runInteractionScan()" class="btn btn-primary" style="padding: 0.75rem 1.6rem; font-size: 0.9rem; font-weight: 700; border-radius: 12px; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                Run AI Scan
+            </button>
+        </div>
+
+        <!-- Quick Test Chips -->
+        <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; font-size: 0.82rem; color: var(--text-muted);">
+            <span style="font-weight: 600;">Quick Test Presets:</span>
+            <button onclick="quickTestScan('Amoxicillin 500mg')" class="btn btn-outline" style="padding: 0.3rem 0.75rem; font-size: 0.78rem; border-radius: 8px;">Amoxicillin (Penicillin Allergy)</button>
+            <button onclick="quickTestScan('Ibuprofen 400mg')" class="btn btn-outline" style="padding: 0.3rem 0.75rem; font-size: 0.78rem; border-radius: 8px;">Ibuprofen (ACEi Conflict)</button>
+            <button onclick="quickTestScan('Spironolactone 25mg')" class="btn btn-outline" style="padding: 0.3rem 0.75rem; font-size: 0.78rem; border-radius: 8px;">Spironolactone (Hyperkalemia)</button>
+            <button onclick="quickTestScan('Acetaminophen 500mg')" class="btn btn-outline" style="padding: 0.3rem 0.75rem; font-size: 0.78rem; border-radius: 8px;">Acetaminophen (Safe)</button>
+        </div>
+
+        <!-- Dynamic Results Box -->
+        <div id="scannerResults" style="display: none; margin-top: 1.25rem; border-top: 1px solid var(--border-color); padding-top: 1.25rem;"></div>
+    </div>
+
+    <!-- Active Warning Cards List -->
+    <h3 style="font-size: 1.15rem; color: var(--heading-color); font-weight: 800; margin: 0 0 1rem;">Active Pharmacology Warnings & Directives</h3>
+    <div style="display: flex; flex-direction: column; gap: 1rem;">
+        {% for w in warnings %}
+        <div class="glass-panel" style="padding: 1.5rem; border-radius: 20px; border-left: 4px solid {{ 'var(--danger-color)' if w.severity == 'critical' else ('var(--warning-color)' if w.severity in ['high', 'medium'] else 'var(--primary-color)') }}; box-shadow: var(--shadow-sm);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.4rem;">
+                <div style="display: flex; align-items: center; gap: 0.65rem;">
+                    <span style="font-size: 1.4rem;">
+                        {{ '🚨' if w.severity == 'critical' else ('⚠️' if w.severity in ['high', 'medium'] else '💡') }}
+                    </span>
+                    <div>
+                        <h4 style="margin: 0; font-size: 1.05rem; font-weight: 800; color: var(--heading-color);">{{ w.title }}</h4>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">{{ w.category }} &bull; Target: {{ w.drug }}</div>
+                    </div>
+                </div>
+                <span class="badge {{ 'badge-red' if w.severity == 'critical' else ('badge-amber' if w.severity in ['high', 'medium'] else 'badge-blue') }}" style="font-size: 0.75rem; font-weight: 800;">
+                    {{ w.severity | upper }}
+                </span>
+            </div>
+            <p style="font-size: 0.88rem; color: var(--text-secondary); margin: 0.5rem 0; line-height: 1.5;">
+                {{ w.description }}
+            </p>
+            <div class="profile-info-box" style="padding: 0.65rem 0.9rem; border-radius: 10px; font-size: 0.82rem;">
+                <strong style="color: var(--primary-color);">AI Recommendation:</strong> {{ w.recommendation }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- TAB 6: MEDICATION HISTORY -->
+<!-- ========================================================================= -->
+<div id="tab-history" class="tab-content" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h2 style="margin: 0; font-size: 1.35rem; color: var(--heading-color); font-weight: 800;">Longitudinal Medication History</h2>
+            <p style="margin: 0.25rem 0 0; font-size: 0.88rem; color: var(--text-secondary);">Historical record of completed therapeutic courses, titrated dosages, and discontinued medications.</p>
+        </div>
+        <span class="badge badge-blue" style="font-weight: 700;">{{ history_prescriptions | length }} Records</span>
+    </div>
+
+    {% if history_prescriptions %}
+    <div class="glass-panel" style="border-radius: 20px; overflow: hidden; box-shadow: var(--shadow-sm);">
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem; text-align: left;">
+                <thead>
+                    <tr style="background: var(--table-th-bg); border-bottom: 1.5px solid var(--border-color); color: var(--table-th-color); font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <th style="padding: 1rem 1.25rem;">Medication</th>
+                        <th style="padding: 1rem 1.25rem;">Dosage & Route</th>
+                        <th style="padding: 1rem 1.25rem;">Therapy Period</th>
+                        <th style="padding: 1rem 1.25rem;">Status</th>
+                        <th style="padding: 1rem 1.25rem;">Reason for Change / Discontinuation</th>
+                        <th style="padding: 1rem 1.25rem;">Physician</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rx in history_prescriptions %}
+                    <tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: 1.1rem 1.25rem;">
+                            <div style="font-weight: 700; color: var(--heading-color);">{{ rx.medication_name }}</div>
+                            <div style="font-size: 0.78rem; color: var(--text-muted); font-family: monospace;">Rx #{{ rx.rx_number }}</div>
+                        </td>
+                        <td style="padding: 1.1rem 1.25rem; color: var(--text-secondary);">
+                            {{ rx.dosage }} &bull; {{ rx.route }}
+                        </td>
+                        <td style="padding: 1.1rem 1.25rem; font-size: 0.82rem; color: var(--text-muted);">
+                            {{ rx.start_date }} &rarr; {{ rx.end_date or 'Completed' }}
+                        </td>
+                        <td style="padding: 1.1rem 1.25rem;">
+                            <span class="badge" style="background: rgba(148, 163, 184, 0.18); color: var(--text-muted); font-size: 0.75rem; text-transform: capitalize; font-weight: 700;">
+                                {{ rx.status }}
+                            </span>
+                        </td>
+                        <td style="padding: 1.1rem 1.25rem; font-size: 0.84rem; color: var(--text-secondary); max-width: 280px; line-height: 1.45;">
+                            {{ rx.discontinue_reason or 'Therapy course completed.' }}
+                        </td>
+                        <td style="padding: 1.1rem 1.25rem; font-size: 0.86rem; color: var(--text-color); font-weight: 700;">
+                            Dr. {{ rx.doctor_name or 'Robert Evans' }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="glass-panel" style="padding: 3.5rem 2rem; text-align: center; border-radius: 22px;">
+        <div style="font-size: 3rem; margin-bottom: 0.85rem;">📜</div>
+        <h3 style="color: var(--heading-color); margin: 0 0 0.5rem; font-weight: 700;">No Historical Prescriptions</h3>
+        <p style="color: var(--text-muted); font-size: 0.92rem;">No past discontinued or completed prescriptions recorded in your longitudinal digital twin ledger.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- ========================================================================= -->
+<!-- PRESCRIPTION VERIFICATION MODAL -->
+<!-- ========================================================================= -->
+<div id="verificationModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 1200; align-items: center; justify-content: center; padding: 1.5rem;">
+    <div class="glass-panel" style="background: var(--card-bg) !important; width: 100%; max-width: 640px; padding: 2.25rem; border-radius: 24px; box-shadow: var(--shadow-lg); border: 2px solid var(--primary-color) !important;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.85rem;">
+                <div style="width: 46px; height: 46px; border-radius: 14px; background: var(--badge-blue-bg); color: var(--primary-color); display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">
+                    🛡️
+                </div>
+                <div>
+                    <h3 style="margin: 0; color: var(--heading-color); font-size: 1.3rem; font-weight: 800;">Prescription Integrity Certificate</h3>
+                    <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.15rem;">Multi-Agent Cryptographic Prescription Verification</div>
+                </div>
+            </div>
+            <button onclick="closeVerificationModal()" style="background: none; border: none; font-size: 1.6rem; cursor: pointer; color: var(--text-muted); padding: 0.2rem 0.5rem; line-height: 1;">&times;</button>
+        </div>
+
+        <div id="verificationModalBody" style="font-size: 0.88rem; color: var(--text-secondary);">
+            <div style="text-align: center; padding: 2rem;">Validating Doctor Cryptographic Signature & Digital Twin Clearance...</div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; margin-top: 1.5rem;">
+            <button onclick="closeVerificationModal()" class="btn btn-primary" style="padding: 0.65rem 1.6rem; font-size: 0.88rem; font-weight: 700; border-radius: 12px; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);">Close Certificate</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('.pharmacy-tab-btn').forEach(el => el.classList.remove('active'));
+        
+        const target = document.getElementById(tabId);
+        if (target) target.style.display = 'block';
+        
+        const btn = document.getElementById('btn-' + tabId);
+        if (btn) btn.classList.add('active');
+    }
+
+    function filterInventory() {
+        const query = document.getElementById('inventorySearch').value.toLowerCase();
+        const category = document.getElementById('categoryFilter').value.toLowerCase();
+        const status = document.getElementById('stockFilter').value;
+
+        const rows = document.querySelectorAll('.inventory-row');
+        rows.forEach(row => {
+            const name = row.getAttribute('data-name');
+            const cat = row.getAttribute('data-category');
+            const st = row.getAttribute('data-status');
+
+            const matchesQuery = !query || name.includes(query);
+            const matchesCat = category === 'all' || cat.includes(category);
+            const matchesStatus = status === 'all' || st === status;
+
+            if (matchesQuery && matchesCat && matchesStatus) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    async function logDose(rxId, status, logId) {
+        try {
+            const res = await fetch('/api/pharmacy/log_adherence', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prescription_id: rxId, status: status })
+            });
+            const data = await res.json();
+            if (data.status === 'SUCCESS') {
+                const badge = document.getElementById('badge-status-' + logId);
+                const card = document.getElementById('dose-card-' + logId);
+                if (badge) {
+                    badge.innerText = status.toUpperCase();
+                    badge.className = 'badge ' + (status === 'taken' ? 'badge-green' : 'badge-red');
+                }
+                if (card && status === 'taken') {
+                    card.style.borderColor = 'rgba(16, 185, 129, 0.5)';
+                }
+                alert(data.message);
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Failed to log dose adherence.");
+        }
+    }
+
+    async function requestRefill(rxId, medName) {
+        if (!confirm(`Confirm request 30-day refill for ${medName}?`)) return;
+        try {
+            const res = await fetch('/api/pharmacy/request_refill', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prescription_id: rxId })
+            });
+            const data = await res.json();
+            alert(data.message);
+            if (data.refills_remaining !== undefined) {
+                const countEl = document.getElementById('refills-count-' + rxId);
+                if (countEl) countEl.innerText = data.refills_remaining;
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Refill request failed.");
+        }
+    }
+
+    async function runInteractionScan() {
+        const drug = document.getElementById('simulatorDrugInput').value.trim();
+        if (!drug) {
+            alert("Please enter a medication name to scan.");
+            return;
+        }
+
+        const resultsContainer = document.getElementById('scannerResults');
+        resultsContainer.style.display = 'block';
+        resultsContainer.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 1.5rem;">Scanning Multi-Agent DDI & Digital Twin Allergy Graphs...</div>';
+
+        try {
+            const res = await fetch('/api/pharmacy/check_warnings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ medication_name: drug })
+            });
+            const data = await res.json();
+            
+            let html = `
+                <div class="profile-info-box" style="border-radius: 16px; padding: 1.35rem; margin-top: 0.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.5rem;">
+                        <h4 style="margin: 0; color: var(--heading-color); font-size: 1.05rem; font-weight: 800;">Scan Results for: <span style="color: var(--primary-color);">${drug}</span></h4>
+                        <span class="badge ${data.has_critical ? 'badge-red' : 'badge-green'}" style="font-weight: 800;">
+                            ${data.has_critical ? '🚨 CRITICAL CONFLICT FLAGGED' : '✓ SAFETY CLEARANCE PASSED'}
+                        </span>
+                    </div>
+            `;
+
+            data.warnings.forEach(w => {
+                html += `
+                    <div style="background: var(--surface-color); border-left: 4px solid ${w.severity === 'critical' ? 'var(--danger-color)' : 'var(--primary-color)'}; padding: 0.85rem 1.1rem; border-radius: 10px; margin-top: 0.65rem; border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+                        <div style="font-weight: 700; color: var(--heading-color); font-size: 0.92rem;">${w.title}</div>
+                        <div style="font-size: 0.84rem; color: var(--text-secondary); margin-top: 0.3rem; line-height: 1.45;">${w.description}</div>
+                        <div style="font-size: 0.82rem; color: var(--primary-color); margin-top: 0.4rem;"><strong>AI Recommendation:</strong> ${w.recommendation}</div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            resultsContainer.innerHTML = html;
+        } catch (e) {
+            console.error(e);
+            resultsContainer.innerHTML = '<div style="color: var(--danger-color); padding: 1rem; text-align: center;">Error executing AI interaction scan.</div>';
+        }
+    }
+
+    function quickTestScan(drugName) {
+        document.getElementById('simulatorDrugInput').value = drugName;
+        runInteractionScan();
+    }
+
+    async function openVerificationModal(rxId) {
+        document.getElementById('verificationModal').style.display = 'flex';
+        const body = document.getElementById('verificationModalBody');
+        body.innerHTML = '<div style="text-align: center; padding: 2.5rem 1rem;">Validating Doctor Cryptographic Signature & Digital Twin Clearance...</div>';
+
+        try {
+            const res = await fetch('/api/pharmacy/verify_prescription', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prescription_id: rxId })
+            });
+            const data = await res.json();
+            const v = data.verification;
+
+            let html = `
+                <div class="profile-info-box" style="border-radius: 14px; padding: 1.25rem; margin-bottom: 1.25rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.45rem;">
+                        <span style="color: var(--text-muted);">Prescription:</span>
+                        <strong style="color: var(--heading-color);">${v.medication} (${v.rx_number})</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.45rem;">
+                        <span style="color: var(--text-muted);">Attending Physician:</span>
+                        <strong style="color: var(--primary-color);">${v.prescribing_physician}</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.45rem;">
+                        <span style="color: var(--text-muted);">Digital Signature Hash:</span>
+                        <code style="font-size: 0.75rem; color: var(--success-color); font-family: monospace;">${v.digital_signature}</code>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-muted);">AI Pharmacist Guardian:</span>
+                        <span style="font-size: 0.82rem; color: var(--text-secondary);">${v.pharmacist_ai_guardian}</span>
+                    </div>
+                </div>
+
+                <h4 style="margin: 0 0 0.75rem; color: var(--heading-color); font-size: 0.98rem; font-weight: 800;">Multi-Agent Validation Checklist:</h4>
+                <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+            `;
+
+            v.checks.forEach(c => {
+                html += `
+                    <div style="display: flex; justify-content: space-between; align-items: center; background: var(--card-inner-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 0.75rem 1rem; font-size: 0.84rem;">
+                        <div>
+                            <div style="font-weight: 700; color: var(--heading-color);">${c.title}</div>
+                            <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 0.15rem;">${c.details}</div>
+                        </div>
+                        <span class="badge badge-green" style="font-size: 0.74rem; font-weight: 700;">${c.status}</span>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            body.innerHTML = html;
+        } catch (e) {
+            console.error(e);
+            body.innerHTML = '<div style="color: var(--danger-color); text-align: center; padding: 1.5rem;">Failed to retrieve verification details.</div>';
+        }
+    }
+
+    function closeVerificationModal() {
+        document.getElementById('verificationModal').style.display = 'none';
+    }
+</script>
+{% endblock %}

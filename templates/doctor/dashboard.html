@@ -1,0 +1,331 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .doctor-stat-card {
+        background: var(--surface-color);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        padding: 1.5rem;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-shadow: var(--shadow-sm);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .doctor-stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--border-hover);
+    }
+
+    .doctor-stat-card .card-icon-wrap {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: transform 0.2s ease;
+    }
+
+    .doctor-stat-card:hover .card-icon-wrap {
+        transform: scale(1.08);
+    }
+    
+    .pulse-dot-green {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #10b981;
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        animation: pulse-green 2s infinite;
+        display: inline-block;
+    }
+    @keyframes pulse-green {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    .triage-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 0.5rem;
+    }
+
+    .triage-table th {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-secondary);
+        font-weight: 700;
+        padding: 0.75rem 1rem;
+        border: none;
+        background: transparent;
+    }
+
+    .triage-table td {
+        padding: 1rem;
+        background: var(--surface-muted);
+        border-top: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--border-color);
+        transition: all 0.2s ease;
+        color: var(--text-color);
+    }
+
+    .triage-table tr td:first-child {
+        border-left: 1px solid var(--border-color);
+        border-top-left-radius: 12px;
+        border-bottom-left-radius: 12px;
+    }
+
+    .triage-table tr td:last-child {
+        border-right: 1px solid var(--border-color);
+        border-top-right-radius: 12px;
+        border-bottom-right-radius: 12px;
+    }
+
+    .triage-table tr:hover td {
+        background: var(--surface-hover);
+        box-shadow: var(--shadow-sm);
+        border-color: var(--border-hover);
+    }
+
+    .stream-feed::-webkit-scrollbar {
+        width: 4px;
+    }
+    .stream-feed::-webkit-scrollbar-thumb {
+        background: var(--border-color);
+        border-radius: 10px;
+    }
+</style>
+
+<!-- Header -->
+<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.35rem;">
+            <h1 style="margin: 0; font-size: 2rem; font-weight: 700; color: var(--text-color);">Predictive Triage Command Center</h1>
+            <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); display: flex; align-items: center; gap: 0.45rem; padding: 0.35rem 0.8rem; border-radius: 20px; font-weight: 600; font-size: 0.8rem;">
+                <span class="pulse-dot-green"></span> Live IoT Telemetry Active
+            </span>
+        </div>
+        <p style="color: var(--text-secondary); margin: 0; font-size: 0.95rem;">
+            Welcome, <strong>Dr. {{ g.user.name }}</strong> &bull; <span style="color: var(--primary-color); font-weight: 600;">{{ doctor_profile.specialization if doctor_profile and doctor_profile.specialization else 'Cardiology & AI Diagnostics' }}</span>
+        </p>
+    </div>
+
+    <div style="display: flex; gap: 0.65rem;">
+        <a href="{{ url_for('doctor_patients') }}" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.15rem; font-weight: 600; border-radius: 12px; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Patient Directory
+        </a>
+        <a href="{{ url_for('doctor_profile') }}" class="btn btn-outline" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.15rem; background: var(--surface-color); color: var(--text-color); border: 1px solid var(--border-color); font-weight: 600; border-radius: 12px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Clinical Settings
+        </a>
+    </div>
+</div>
+
+<!-- 4 Key Stat Cards -->
+<div class="grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; margin-bottom: 2rem;">
+    <!-- 1. Cohort -->
+    <div class="doctor-stat-card">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary); font-weight: 700; letter-spacing: 0.5px;">Monitored Cohort</span>
+                <div style="font-size: 2.2rem; font-weight: 800; color: var(--text-color); line-height: 1.2; margin-top: 0.25rem;">{{ cohort_count }}</div>
+            </div>
+            <div class="card-icon-wrap" style="background: rgba(37, 99, 235, 0.15); color: var(--primary-color);">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+        </div>
+        <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color); font-size: 0.8rem; color: #10b981; font-weight: 600; display: flex; align-items: center; gap: 0.4rem;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            100% Telemetry Synced
+        </div>
+    </div>
+
+    <!-- 2. Deterioration Warnings -->
+    <div class="doctor-stat-card">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary); font-weight: 700; letter-spacing: 0.5px;">Deterioration Alerts</span>
+                <div style="font-size: 2.2rem; font-weight: 800; color: #f59e0b; line-height: 1.2; margin-top: 0.25rem;">2</div>
+            </div>
+            <div class="card-icon-wrap" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            </div>
+        </div>
+        <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color); font-size: 0.8rem; color: #f59e0b; font-weight: 600;">
+            Elevated BP & Lipid Trends
+        </div>
+    </div>
+
+    <!-- 3. Critical Alerts -->
+    <div class="doctor-stat-card">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary); font-weight: 700; letter-spacing: 0.5px;">Critical Triggers</span>
+                <div style="font-size: 2.2rem; font-weight: 800; color: var(--danger-color); line-height: 1.2; margin-top: 0.25rem;">{{ critical_alerts_count }}</div>
+            </div>
+            <div class="card-icon-wrap" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+        </div>
+        <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color); font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;">
+            Automated Triage Queue
+        </div>
+    </div>
+
+    <!-- 4. Active Interventions -->
+    <div class="doctor-stat-card">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary); font-weight: 700; letter-spacing: 0.5px;">Active Regimens</span>
+                <div style="font-size: 2.2rem; font-weight: 800; color: #10b981; line-height: 1.2; margin-top: 0.25rem;">8</div>
+            </div>
+            <div class="card-icon-wrap" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M7 12h10"/><path d="M12 7v10"/></svg>
+            </div>
+        </div>
+        <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color); font-size: 0.8rem; color: #10b981; font-weight: 600;">
+            94% Medication Adherence
+        </div>
+    </div>
+</div>
+
+<!-- Main Section: Triage Queue & Actions -->
+<div class="grid" style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+    
+    <!-- AI Triage Queue -->
+    <div class="glass-panel" style="padding: 1.75rem; border-radius: 20px; background: var(--surface-color); border: 1px solid var(--border-color);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <div>
+                <h3 style="margin: 0; font-size: 1.2rem; font-weight: 700; color: var(--text-color);">Priority Patient Triage Queue</h3>
+                <div style="font-size: 0.8rem; color: var(--text-secondary);">Ranked dynamically by Multi-Agent AI risk stratification and slope</div>
+            </div>
+            <a href="{{ url_for('doctor_patients') }}" class="btn btn-outline" style="padding: 0.35rem 0.85rem; font-size: 0.8rem; font-weight: 600; border-radius: 8px; border: 1px solid var(--border-color); color: var(--text-color); background: var(--surface-color);">View All Patients ➔</a>
+        </div>
+        
+        <div style="overflow-x: auto;">
+            <table class="triage-table">
+                <thead>
+                    <tr>
+                        <th>Patient</th>
+                        <th>Condition / Regimen</th>
+                        <th>Risk Trajectory</th>
+                        <th>Triage Score</th>
+                        <th style="text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for patient in patients %}
+                    <tr>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                <div style="width: 38px; height: 38px; border-radius: 10px; background: linear-gradient(135deg, #2563eb, #7c3aed); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.95rem; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);">
+                                    {{ patient.name[0] | upper }}
+                                </div>
+                                <div>
+                                    <div style="font-weight: 700; color: var(--text-color); font-size: 0.95rem;">{{ patient.name }}</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-secondary);">#PT-{{ patient.id }}-2026 &bull; Blood: <span style="font-weight: 600; color: #ef4444;">{{ patient.blood_group or 'N/A' }}</span></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-color);">
+                                {{ patient.medical_history or 'Hypertension Monitoring' }}
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary);">
+                                {{ patient.current_medications or 'Lisinopril 10mg' }}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge" style="background: {% if loop.index == 1 %}rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3);{% elif loop.index == 2 %}rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3);{% else %}rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);{% endif %} font-size: 0.75rem; font-weight: 700; padding: 0.25rem 0.6rem; border-radius: 6px;">
+                                {% if loop.index == 1 %}ELEVATED RISK{% elif loop.index == 2 %}MODERATE{% else %}STABLE{% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <div style="font-weight: 800; font-size: 1rem; color: {% if loop.index == 1 %}#ef4444{% elif loop.index == 2 %}#f59e0b{% else %}#10b981{% endif %};">
+                                {% if loop.index == 1 %}88 / 100{% elif loop.index == 2 %}64 / 100{% else %}32 / 100{% endif %}
+                            </div>
+                        </td>
+                        <td style="text-align: right;">
+                            <div style="display: inline-flex; gap: 0.4rem;">
+                                <a href="{{ url_for('doctor_patient_detail', patient_id=patient.id) }}" class="btn btn-outline" style="padding: 0.35rem 0.65rem; font-size: 0.8rem; font-weight: 600; border-radius: 8px; border: 1px solid var(--border-color); color: var(--text-color); background: var(--surface-color);">Profile</a>
+                                <a href="{{ url_for('doctor_twin', patient_id=patient.id) }}" class="btn btn-primary" style="padding: 0.35rem 0.65rem; font-size: 0.8rem; font-weight: 600; border-radius: 8px;">Twin</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Right Panel: Clinical Actions & Live Feed -->
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        
+        <!-- Clinical Alert Action Card -->
+        <div class="glass-panel" style="padding: 1.5rem; border-radius: 18px; border: 1px solid rgba(239, 68, 68, 0.3); border-left: 4px solid #ef4444; background: var(--surface-color);">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.85rem; color: #ef4444; font-weight: 700; font-size: 1rem;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                Action Required: Clinical Trigger
+            </div>
+            
+            <div style="background: var(--surface-muted); padding: 1rem; border-radius: 12px; border: 1px solid rgba(239, 68, 68, 0.2); margin-bottom: 1rem; box-shadow: var(--shadow-sm);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                    <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-color);">Patient1 (ID #PT-4)</div>
+                    <span class="badge" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 4px;">+18% 24h Risk</span>
+                </div>
+                <div style="font-size: 0.83rem; color: var(--text-secondary); line-height: 1.5;">
+                    Evening blood pressure consistently elevated (142/92 mmHg) over past 3 wearable syncs. Multi-Agent CDS recommends lipid panel review before medication adjustment.
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 0.6rem;">
+                <a href="{{ url_for('doctor_consultation', patient_id=4) }}" class="btn btn-primary" style="flex: 1; text-align: center; font-size: 0.85rem; font-weight: 600; padding: 0.55rem; border-radius: 10px;">
+                    Start Consultation
+                </a>
+                <a href="{{ url_for('doctor_cds', patient_id=4) }}" class="btn btn-outline" style="background: var(--surface-color); color: var(--text-color); border: 1px solid var(--border-color); font-size: 0.85rem; font-weight: 600; padding: 0.55rem 0.85rem; border-radius: 10px;">
+                    CDS Analysis
+                </a>
+            </div>
+        </div>
+        
+        <!-- Live Telemetry Stream -->
+        <div class="glass-panel stream-feed" style="padding: 1.5rem; border-radius: 18px; background: var(--surface-color); border: 1px solid var(--border-color);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-color);">
+                <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; color: var(--text-color);">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2.2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    Live Multi-Agent Stream
+                </h3>
+                <span class="pulse-dot-green"></span>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 0.65rem; font-size: 0.82rem; max-height: 200px; overflow-y: auto;">
+                <div style="display: flex; gap: 0.6rem; align-items: flex-start; padding: 0.4rem 0; border-bottom: 1px solid var(--border-color);">
+                    <span style="color: var(--text-muted); font-weight: 600; font-family: monospace; font-size: 0.75rem;">10:42</span>
+                    <span style="color: var(--text-color); line-height: 1.4;">Patient1 Apple Watch synced. Resting HR: 74 bpm (<span style="color: #10b981; font-weight: 600;">Optimal</span>).</span>
+                </div>
+                <div style="display: flex; gap: 0.6rem; align-items: flex-start; padding: 0.4rem 0; border-bottom: 1px solid var(--border-color);">
+                    <span style="color: var(--text-muted); font-weight: 600; font-family: monospace; font-size: 0.75rem;">10:28</span>
+                    <span style="color: var(--text-color); line-height: 1.4;">Prediction Agent computed 6-month organ degradation index.</span>
+                </div>
+                <div style="display: flex; gap: 0.6rem; align-items: flex-start; padding: 0.4rem 0;">
+                    <span style="color: var(--text-muted); font-weight: 600; font-family: monospace; font-size: 0.75rem;">09:50</span>
+                    <span style="color: var(--text-color); line-height: 1.4;">Diagnosis Agent cross-referenced symptom vector with ACC/AHA 2024.</span>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+</div>
+{% endblock %}

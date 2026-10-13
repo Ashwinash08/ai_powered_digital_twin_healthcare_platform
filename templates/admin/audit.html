@@ -1,0 +1,404 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .audit-tab-nav {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--border-color);
+        padding-bottom: 0.5rem;
+        flex-wrap: wrap;
+    }
+    .audit-tab-btn {
+        padding: 0.6rem 1.25rem;
+        border-radius: 10px;
+        text-decoration: none;
+        color: var(--text-secondary);
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        border: none;
+        background: transparent;
+    }
+    .audit-tab-btn:hover {
+        background: rgba(59, 130, 246, 0.06);
+        color: var(--primary-color);
+    }
+    .audit-tab-btn.active {
+        background: var(--primary-color);
+        color: white;
+    }
+    .audit-tab-btn.active .tab-badge {
+        background: rgba(255,255,255,0.25);
+        color: white;
+    }
+    .tab-badge {
+        background: var(--surface-muted);
+        color: var(--text-secondary);
+        padding: 0.15rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+
+    .anomaly-card {
+        background: var(--surface-color);
+        border-radius: 16px;
+        padding: 1.25rem 1.5rem;
+        border: 1.5px solid var(--border-color);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 0.85rem;
+        transition: all 0.25s ease;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+    }
+    .anomaly-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+    }
+    .anomaly-critical {
+        border-left: 5px solid #dc2626;
+    }
+    .anomaly-high {
+        border-left: 5px solid #ea580c;
+    }
+    .anomaly-medium {
+        border-left: 5px solid #d97706;
+    }
+    .anomaly-low {
+        border-left: 5px solid #2563eb;
+    }
+</style>
+
+<div class="dashboard-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+    <div>
+        <h1 style="margin: 0 0 0.25rem 0;">HIPAA Security, AI Anomalies & Audit Trail</h1>
+        <p style="color: var(--text-secondary); margin: 0;">AI-driven access anomaly detection, Emergency Break-Glass audit governance, and immutable compliance records.</p>
+    </div>
+    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+        <button id="scanBtn" class="btn btn-primary" onclick="triggerAnomalyScan()" style="display: flex; align-items: center; gap: 0.4rem; background: linear-gradient(135deg, #4f46e5, #7c3aed); border: none;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="12 8 8 12 12 16 12 8"/></svg>
+            Run AI Anomaly Heuristic Scan
+        </button>
+        <button class="btn btn-outline" onclick="alert('Signed HIPAA compliance logs exported (.csv)')">Export Audit Log (.csv)</button>
+    </div>
+</div>
+
+<!-- Key Security Metrics -->
+<div class="metrics-grid" style="margin-bottom: 2rem;">
+    <div class="metric-card">
+        <h3>AI Anomalies Detected</h3>
+        <div class="value" style="color: {{ '#dc2626' if stats.critical_anomalies > 0 else '#2563eb' }};">{{ stats.total_anomalies }}</div>
+        <div style="font-size: 0.8rem; color: {{ '#dc2626' if stats.critical_anomalies > 0 else '#10b981' }}; margin-top: 0.25rem;">
+            {{ stats.critical_anomalies }} active/unresolved flags
+        </div>
+    </div>
+    <div class="metric-card">
+        <h3>Emergency Break-Glass</h3>
+        <div class="value" style="color: #ea580c;">{{ stats.total_emergencies }}</div>
+        <div style="font-size: 0.8rem; color: #b45309; margin-top: 0.25rem;">{{ stats.active_emergencies }} active sessions currently</div>
+    </div>
+    <div class="metric-card">
+        <h3>High Risk Users</h3>
+        <div class="value" style="color: {{ '#dc2626' if stats.high_risk_users_count > 0 else '#10b981' }};">{{ stats.high_risk_users_count }}</div>
+        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">Risk score &ge; 50/100</div>
+    </div>
+    <div class="metric-card">
+        <h3>Security Posture</h3>
+        <div class="value" style="color: #10b981;">OPTIMAL</div>
+        <div style="font-size: 0.8rem; color: #10b981; margin-top: 0.25rem;">AI Access Guardrails Active</div>
+    </div>
+</div>
+
+<!-- Tab Navigation -->
+<div class="audit-tab-nav">
+    <button class="audit-tab-btn active" onclick="switchAuditTab('tab-radar', this)">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+        AI Access Anomaly Radar <span class="tab-badge">{{ anomalies | length }}</span>
+    </button>
+    <button class="audit-tab-btn" onclick="switchAuditTab('tab-emergency', this)">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Emergency Break-Glass Log <span class="tab-badge">{{ emergency_sessions | length }}</span>
+    </button>
+    <button class="audit-tab-btn" onclick="switchAuditTab('tab-logs', this)">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Full Immutable Audit Trail <span class="tab-badge">{{ logs | length }}</span>
+    </button>
+</div>
+
+<!-- ========================================== -->
+<!-- TAB 1: AI ACCESS ANOMALY RADAR             -->
+<!-- ========================================== -->
+<div id="tab-radar" class="audit-pane">
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+        
+        <!-- Flagged Anomalies Stream -->
+        <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--heading-color);">Detected Unusual Access Patterns</h3>
+                <span class="badge" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6; font-weight: 600;">Real-Time AI Guardrails</span>
+            </div>
+
+            <div id="anomaliesList" style="display: flex; flex-direction: column; gap: 1rem;">
+                {% for anomaly in anomalies %}
+                <div class="anomaly-card anomaly-{{ anomaly.severity }}">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem;">
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                                <span style="font-weight: 700; font-size: 0.95rem; color: var(--heading-color);">{{ anomaly.anomaly_type }}</span>
+                                {% if anomaly.severity == 'critical' %}
+                                    <span class="badge" style="background: #fee2e2; color: #991b1b; font-weight: 700; font-size: 0.7rem;">CRITICAL</span>
+                                {% elif anomaly.severity == 'high' %}
+                                    <span class="badge" style="background: #ffedd5; color: #c2410c; font-weight: 700; font-size: 0.7rem;">HIGH SEVERITY</span>
+                                {% elif anomaly.severity == 'medium' %}
+                                    <span class="badge" style="background: #fef3c7; color: #92400e; font-weight: 700; font-size: 0.7rem;">MEDIUM</span>
+                                {% else %}
+                                    <span class="badge" style="background: #eff6ff; color: #1d4ed8; font-weight: 700; font-size: 0.7rem;">LOW</span>
+                                {% endif %}
+                                <span class="badge" style="background: var(--surface-muted); color: var(--text-secondary); font-size: 0.7rem;">Score: {{ anomaly.anomaly_score }}/100</span>
+                            </div>
+                            <div style="font-size: 0.82rem; color: var(--text-secondary);">
+                                <strong>User:</strong> {{ anomaly.user_name }} ({{ anomaly.user_role }}) &bull; 
+                                <strong>Target:</strong> {{ anomaly.patient_name or 'General Cohort' }} &bull; 
+                                <span>{{ anomaly.detected_at }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Status Badge & Quick Resolve Form -->
+                        <div style="display: flex; align-items: center; gap: 0.4rem;">
+                            {% if anomaly.status == 'flagged' %}
+                                <span class="badge" style="background: #fee2e2; color: #991b1b; font-size: 0.75rem;">Flagged</span>
+                            {% elif anomaly.status == 'investigating' %}
+                                <span class="badge" style="background: #fef3c7; color: #92400e; font-size: 0.75rem;">Investigating</span>
+                            {% else %}
+                                <span class="badge" style="background: #dcfce7; color: #166534; font-size: 0.75rem;">Resolved</span>
+                            {% endif %}
+
+                            {% if anomaly.status != 'resolved' %}
+                            <form method="POST" action="{{ url_for('admin_anomaly_resolve', anomaly_id=anomaly.id) }}" style="margin:0;">
+                                <input type="hidden" name="status" value="resolved">
+                                <button type="submit" class="btn btn-outline" style="padding: 0.2rem 0.55rem; font-size: 0.75rem; border-color: #10b981; color: #047857;">Resolve</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div style="background: var(--surface-muted); border: 1px solid var(--border-color); border-radius: 10px; padding: 0.75rem; font-size: 0.85rem; color: var(--text-color); line-height: 1.5;">
+                        {{ anomaly.description }}
+                    </div>
+                </div>
+                {% endfor %}
+
+                {% if not anomalies %}
+                <div class="glass-panel" style="padding: 3rem; text-align: center; color: var(--text-secondary);">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" style="margin-bottom: 0.5rem;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+                    <div style="font-weight: 700; color: var(--heading-color);">Zero Access Anomalies Detected</div>
+                    <div style="font-size: 0.85rem;">All clinicians and users exhibiting normal record query behavior.</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- High Risk Users Watchlist Panel -->
+        <div>
+            <div class="glass-panel" style="padding: 1.75rem; border-radius: 20px;">
+                <h3 style="margin: 0 0 1rem 0; font-size: 1.1rem; font-weight: 700; color: var(--heading-color); display: flex; align-items: center; gap: 0.5rem;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    Security Risk Watchlist
+                </h3>
+                <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+                    Users ranked by dynamic behavioral risk score (failed auths, high-velocity queries, break-glass usage).
+                </p>
+
+                <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+                    {% for u in high_risk_users %}
+                    <div style="background: var(--surface-muted); border: 1px solid var(--border-color); border-radius: 12px; padding: 0.85rem 1rem; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: 700; color: var(--heading-color); font-size: 0.88rem;">{{ u.name }}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary);">{{ u.role | capitalize }} &bull; {{ u.email }}</div>
+                        </div>
+                        <div>
+                            {% set score = u.risk_score or 12 %}
+                            <span class="badge" style="background: {{ '#fee2e2' if score >= 50 else '#fef3c7' }}; color: {{ '#991b1b' if score >= 50 else '#92400e' }}; font-weight: 800; font-size: 0.8rem;">
+                                {{ score }}/100
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div style="margin-top: 1.5rem; text-align: center;">
+                    <a href="{{ url_for('admin_users') }}" class="btn btn-outline" style="width: 100%; font-size: 0.82rem; padding: 0.5rem;">
+                        Manage User Risk Posture →
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- TAB 2: EMERGENCY BREAK-GLASS AUDIT LOG     -->
+<!-- ========================================== -->
+<div id="tab-emergency" class="audit-pane" style="display: none;">
+    <div class="glass-panel" style="padding: 1.75rem; overflow-x: auto; border-radius: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <div>
+                <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: #991b1b;">Emergency Break-Glass Record Overrides</h3>
+                <p style="color: var(--text-secondary); margin: 0.25rem 0 0 0; font-size: 0.85rem;">Stat clinician authorizations bypassing normal PHI restrictions during critical care.</p>
+            </div>
+            <span class="badge" style="background: #fee2e2; color: #991b1b; font-weight: 700;">HIPAA Section 164.510 Compliance</span>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Attending Doctor</th>
+                    <th>Target Patient</th>
+                    <th>Stated Emergency Reason</th>
+                    <th>Urgency</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for emerg in emergency_sessions %}
+                <tr>
+                    <td style="color: var(--text-secondary); font-size: 0.85rem; white-space: nowrap;">{{ emerg.started_at }}</td>
+                    <td>
+                        <div style="font-weight: 700; color: var(--heading-color);">Dr. {{ emerg.doctor_name }}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary);">{{ emerg.doctor_email }}</div>
+                    </td>
+                    <td>
+                        <div style="font-weight: 700; color: var(--heading-color);">{{ emerg.patient_name }}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary);">ID: #PT-{{ emerg.patient_id }}-2026</div>
+                    </td>
+                    <td>
+                        <div style="font-weight: 600; font-size: 0.85rem; color: #b91c1c;">{{ emerg.reason }}</div>
+                        {% if emerg.notes %}
+                            <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.2rem;"><em>"{{ emerg.notes }}"</em></div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge" style="background: #fee2e2; color: #991b1b; font-size: 0.72rem; font-weight: 700; text-transform: uppercase;">
+                            {{ emerg.urgency_level or 'Critical' }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if emerg.is_active %}
+                            <span class="badge" style="background: #fee2e2; color: #991b1b; font-weight: 700; animation: risk-pulse 2s infinite;">Active (30m Window)</span>
+                        {% else %}
+                            <span class="badge" style="background: var(--surface-muted); color: var(--text-secondary);">Expired / Closed</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+
+                {% if not emergency_sessions %}
+                <tr>
+                    <td colspan="6" style="text-align: center; color: var(--text-secondary); padding: 2.5rem;">
+                        No emergency break-glass sessions recorded.
+                    </td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- TAB 3: FULL IMMUTABLE AUDIT TRAIL          -->
+<!-- ========================================== -->
+<div id="tab-logs" class="audit-pane" style="display: none;">
+    <div class="glass-panel" style="padding: 1.75rem; overflow-x: auto; border-radius: 20px;">
+        <h3 style="margin: 0 0 1.25rem 0; font-size: 1.15rem;">Real-Time Administrative & Security Activity Trail</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>User / Operator</th>
+                    <th>Action Executed</th>
+                    <th>IP Address</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td style="color: var(--text-secondary); font-size: 0.85rem; white-space: nowrap;">{{ log.timestamp }}</td>
+                    <td>
+                        <div style="font-weight: 600; color: var(--text-color);">{{ log.user_name or log.email or 'System Engine' }}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary);">{{ log.email }}</div>
+                    </td>
+                    <td>
+                        <span style="font-weight: 600; font-size: 0.85rem; color: {{ '#dc2626' if 'ANOMALY' in log.action or 'BREAK_GLASS' in log.action else 'var(--text-color)' }};">
+                            {{ log.action }}
+                        </span>
+                    </td>
+                    <td style="font-family: monospace; font-size: 0.85rem; color: var(--text-secondary);">{{ log.ip_address }}</td>
+                    <td>
+                        {% if 'SUCCESS' in log.status or log.status == 'success' %}
+                            <span class="badge" style="background: #dcfce7; color: #166534; font-size: 0.75rem;">SUCCESS</span>
+                        {% elif log.status == 'EMERGENCY_OVERRIDE' %}
+                            <span class="badge" style="background: #fee2e2; color: #991b1b; font-size: 0.75rem; font-weight: 700;">EMERGENCY OVERRIDE</span>
+                        {% elif log.status == 'SECURITY_FLAG' or log.status == 'SECURITY_ACTION' %}
+                            <span class="badge" style="background: #ffedd5; color: #c2410c; font-size: 0.75rem; font-weight: 700;">SECURITY FLAG</span>
+                        {% else %}
+                            <span class="badge" style="background: #fee2e2; color: #991b1b; font-size: 0.75rem;">FAILED</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                {% if not logs %}
+                <tr>
+                    <td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 2.5rem;">No security events recorded.</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function switchAuditTab(tabId, btn) {
+        document.querySelectorAll('.audit-pane').forEach(function(pane) {
+            pane.style.display = 'none';
+        });
+        document.querySelectorAll('.audit-tab-btn').forEach(function(b) {
+            b.classList.remove('active');
+        });
+        document.getElementById(tabId).style.display = 'block';
+        btn.classList.add('active');
+    }
+
+    function triggerAnomalyScan() {
+        var btn = document.getElementById('scanBtn');
+        btn.innerHTML = '<span style="display:inline-block;animation:spin 1s linear infinite;">🔄</span> Running AI Scan...';
+        btn.disabled = true;
+
+        fetch('/api/admin/anomaly_scan', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            btn.innerHTML = '✅ Scan Completed!';
+            setTimeout(function() {
+                window.location.reload();
+            }, 800);
+        })
+        .catch(function(err) {
+            alert('Scan error: ' + err);
+            btn.innerHTML = 'Run AI Anomaly Heuristic Scan';
+            btn.disabled = false;
+        });
+    }
+</script>
+{% endblock %}

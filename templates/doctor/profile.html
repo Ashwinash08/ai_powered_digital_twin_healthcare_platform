@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .profile-card {
+        background: var(--surface-color);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .form-control-custom {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        background: var(--surface-color);
+        border: 1.5px solid var(--border-color);
+        border-radius: 12px;
+        font-size: 0.9rem;
+        color: var(--text-color);
+        transition: all 0.2s ease;
+        outline: none;
+    }
+
+    .form-control-custom:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .form-control-disabled {
+        background: var(--surface-muted) !important;
+        border-color: var(--border-color) !important;
+        color: var(--text-secondary) !important;
+        cursor: not-allowed;
+    }
+</style>
+
+<div class="dashboard-header" style="margin-bottom: 2rem;">
+    <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.35rem;">
+        <h1 style="margin: 0; font-size: 1.85rem; font-weight: 700; color: var(--text-color);">Doctor Clinical Profile & Practice Settings</h1>
+        <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 0.75rem; padding: 0.25rem 0.65rem; border-radius: 20px; font-weight: 600;">
+            Active Practice
+        </span>
+    </div>
+    <p style="color: var(--text-secondary); margin: 0; font-size: 0.95rem;">Manage your clinical credentials, medical specialization, emergency contact lines, and board verification status.</p>
+</div>
+
+<div class="grid" style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; max-width: 100%;">
+    
+    <!-- Left Column: Doctor Credential Summary -->
+    <div class="profile-card" style="padding: 2rem; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: space-between;">
+        <div style="width: 100%;">
+            <div style="position: relative; width: 96px; height: 96px; margin: 0 auto 1.25rem auto;">
+                <div style="width: 100%; height: 100%; border-radius: 24px; background: linear-gradient(135deg, #2563eb, #7c3aed); color: white; display: flex; align-items: center; justify-content: center; font-size: 2.6rem; font-weight: 700; box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.35);">
+                    {{ g.user.name[0] | upper }}
+                </div>
+                <div style="position: absolute; bottom: -3px; right: -3px; width: 22px; height: 22px; border-radius: 50%; background: #10b981; border: 3px solid var(--surface-color); box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);"></div>
+            </div>
+
+            <h2 style="margin: 0 0 0.25rem 0; font-size: 1.45rem; font-weight: 700; color: var(--text-color);">Dr. {{ g.user.name }}</h2>
+            <div style="color: var(--primary-color); font-size: 0.9rem; font-weight: 600; margin-bottom: 1.25rem;">
+                {{ profile.specialization if profile and profile.specialization else 'Cardiology & AI Diagnostics' }}
+            </div>
+            
+            <div style="margin-bottom: 1.5rem;">
+                {% if profile and profile.is_approved %}
+                    <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 0.8rem; padding: 0.4rem 0.9rem; border-radius: 20px; font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                        Board Verified & Approved
+                    </span>
+                {% else %}
+                    <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); font-size: 0.8rem; padding: 0.4rem 0.9rem; border-radius: 20px; font-weight: 700;">
+                        ⏳ Verification Pending
+                    </span>
+                {% endif %}
+            </div>
+
+            <div style="background: var(--surface-muted); padding: 1.1rem; border-radius: 14px; border: 1px solid var(--border-color); text-align: left; font-size: 0.85rem; display: flex; flex-direction: column; gap: 0.65rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: var(--text-secondary); font-size: 0.8rem;">License ID:</span>
+                    <span style="font-weight: 700; color: var(--text-color); font-family: monospace; font-size: 0.85rem;">{{ profile.license_number if profile and profile.license_number else 'MED-CA-98421' }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: var(--text-secondary); font-size: 0.8rem;">Clinical Role:</span>
+                    <span style="font-weight: 600; color: var(--text-color);">Attending Clinician</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: var(--text-secondary); font-size: 0.8rem;">Multi-Agent CDS:</span>
+                    <span style="color: #10b981; font-weight: 700; font-size: 0.8rem; background: rgba(16, 185, 129, 0.15); padding: 0.15rem 0.5rem; border-radius: 6px;">Enabled</span>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 1.75rem; width: 100%;">
+            <a href="{{ url_for('doctor_dashboard') }}" class="btn btn-outline" style="width: 100%; font-size: 0.85rem; font-weight: 600; padding: 0.6rem; border-radius: 10px; background: var(--surface-color); color: var(--text-color); border: 1px solid var(--border-color); text-align: center;">
+                Go to Command Center ➔
+            </a>
+        </div>
+    </div>
+
+    <!-- Right Column: Edit Profile Form -->
+    <div class="profile-card" style="padding: 2.25rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.85rem;">
+            <div>
+                <h3 style="margin: 0; font-size: 1.2rem; font-weight: 700; color: var(--text-color);">
+                    Clinical Practice & Credential Details
+                </h3>
+                <div style="font-size: 0.8rem; color: var(--text-secondary);">Update practice credentials and contact telephone routing.</div>
+            </div>
+        </div>
+
+        <form method="POST" action="{{ url_for('doctor_profile') }}">
+            <div class="grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-color); margin-bottom: 0.4rem; display: block;">Clinician Full Name</label>
+                    <input type="text" class="form-control-custom form-control-disabled" value="Dr. {{ g.user.name }}" disabled>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-color); margin-bottom: 0.4rem; display: block;">Registered Medical Email</label>
+                    <input type="text" class="form-control-custom form-control-disabled" value="{{ g.user.email }}" disabled>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.25rem;">
+                <label for="specialization" style="font-size: 0.8rem; font-weight: 600; color: var(--text-color); margin-bottom: 0.4rem; display: block;">Primary Medical Specialization & Sub-Specialties</label>
+                <input type="text" id="specialization" name="specialization" class="form-control-custom" value="{{ profile.specialization if profile and profile.specialization else 'Cardiology & AI Diagnostics' }}" placeholder="e.g. Cardiology, Endocrinology, Internal Medicine" required>
+            </div>
+
+            <div class="grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.5rem;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="license_number" style="font-size: 0.8rem; font-weight: 600; color: var(--text-color); margin-bottom: 0.4rem; display: block;">Medical Board License Number</label>
+                    <input type="text" id="license_number" name="license_number" class="form-control-custom" value="{{ profile.license_number if profile and profile.license_number else 'MED-CA-98421' }}" placeholder="e.g. MED-CA-98421" required>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="contact_number" style="font-size: 0.8rem; font-weight: 600; color: var(--text-color); margin-bottom: 0.4rem; display: block;">Clinical / Emergency Contact Phone</label>
+                    <input type="text" id="contact_number" name="contact_number" class="form-control-custom" value="{{ profile.contact_number if profile and profile.contact_number else '+1 (555) 234-5678' }}" placeholder="+1 (555) 000-0000" required>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                <button type="submit" class="btn btn-primary" style="padding: 0.7rem 1.8rem; font-weight: 600; font-size: 0.9rem; border-radius: 12px; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);">
+                    Save Practice Profile
+                </button>
+            </div>
+        </form>
+    </div>
+
+</div>
+{% endblock %}

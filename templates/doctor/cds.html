@@ -1,0 +1,433 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .agent-avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 0.95rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        flex-shrink: 0;
+        transition: transform 0.2s ease;
+    }
+    
+    .agent-card {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        border-radius: 18px;
+        padding: 1.5rem;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+    }
+
+    .agent-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 28px -6px rgba(15, 23, 42, 0.09);
+        border-color: #cbd5e1;
+    }
+
+    .agent-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+    }
+
+    .agent-card.dx::before { background: linear-gradient(90deg, #ef4444, #f87171); }
+    .agent-card.ra::before { background: linear-gradient(90deg, #f97316, #fb923c); }
+    .agent-card.tx::before { background: linear-gradient(90deg, #10b981, #34d399); }
+    .agent-card.rx::before { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+
+    .consensus-panel {
+        background: linear-gradient(135deg, rgba(239, 246, 255, 0.95) 0%, rgba(240, 253, 250, 0.85) 100%);
+        border: 1.5px solid rgba(59, 130, 246, 0.35);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px -5px rgba(37, 99, 235, 0.12);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .confidence-meter {
+        height: 6px;
+        border-radius: 10px;
+        background: rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+        margin-top: 0.4rem;
+    }
+
+    .confidence-fill {
+        height: 100%;
+        border-radius: 10px;
+    }
+</style>
+
+{% include 'doctor/_patient_nav.html' %}
+
+<div class="dashboard-header" style="margin-bottom: 1.75rem; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+            <h2 style="font-size: 1.6rem; margin: 0; font-weight: 700; color: var(--text-color);">Multi-Agent Clinical Decision Support</h2>
+            <span class="badge" style="background: #dbeafe; color: #1e40af; font-size: 0.75rem; padding: 0.25rem 0.65rem; border-radius: 20px; font-weight: 600;">Autonomous Consensus v2.4</span>
+        </div>
+        <p style="color: var(--text-secondary); margin: 0; font-size: 0.95rem;">AI-driven differential diagnosis, predictive risk modeling, and pharmacological safety validation.</p>
+    </div>
+    <div style="font-size: 0.8rem; color: #166534; background: #dcfce7; padding: 0.4rem 0.85rem; border-radius: 30px; font-weight: 600; display: inline-flex; align-items: center; gap: 0.4rem;">
+        <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+        4 Specialized Agents Reporting Active
+    </div>
+</div>
+
+<!-- Multi-Agent Consensus -->
+<div class="consensus-panel">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <div style="display: flex;">
+                <!-- Overlapping Avatars with Glow -->
+                <div class="agent-avatar" style="background: #ef4444; border: 2.5px solid white; z-index: 4;" title="Diagnosis Agent">Dx</div>
+                <div class="agent-avatar" style="background: #f97316; border: 2.5px solid white; margin-left: -14px; z-index: 3;" title="Risk Assessment Agent">RA</div>
+                <div class="agent-avatar" style="background: #10b981; border: 2.5px solid white; margin-left: -14px; z-index: 2;" title="Treatment Agent">Tx</div>
+                <div class="agent-avatar" style="background: #8b5cf6; border: 2.5px solid white; margin-left: -14px; z-index: 1;" title="Drug Interaction Agent">Rx</div>
+            </div>
+            <div>
+                <h3 style="margin: 0; color: #1e3a8a; font-size: 1.2rem; font-weight: 700;">Multi-Agent Clinical Consensus</h3>
+                <div style="font-size: 0.85rem; color: var(--text-secondary);">Synthesized across patient history, telemetry streams, and clinical RAG guidelines.</div>
+            </div>
+        </div>
+        <div style="background: rgba(37, 99, 235, 0.1); color: #1d4ed8; font-weight: 700; font-size: 0.85rem; padding: 0.35rem 0.85rem; border-radius: 8px; border: 1px solid rgba(37, 99, 235, 0.2);">
+            Consensus Confidence: 91.5%
+        </div>
+    </div>
+    
+    <div style="background: rgba(255, 255, 255, 0.85); border: 1px solid rgba(191, 219, 254, 0.8); border-radius: 14px; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; position: relative;">
+        <p style="font-size: 1.05rem; line-height: 1.7; color: var(--text-color); margin: 0;">
+            "The multi-agent pipeline confirms a primary diagnosis of <strong style="color: #1e40af;">Benign Essential Hypertension</strong>. The Risk Assessment Agent notes an elevated 6-month cardiovascular trajectory (+4.2% ASCVD) due to lifestyle factors detected in the Digital Twin. While the Treatment Agent recommends stepping up ACE Inhibitor therapy, the Pharmacology Agent flagged a <strong style="color: #dc2626;">moderate conflict</strong> with self-reported NSAID use. <strong style="color: #15803d;">Final Consensus:</strong> Transition to an ARB (Losartan 50mg) and schedule a 90-day renal function check."
+        </p>
+    </div>
+    
+    <div style="display: flex; gap: 0.85rem; flex-wrap: wrap;">
+        <button class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.65rem 1.3rem; font-weight: 600; border-radius: 10px;" onclick="alert('Consensus recommendations accepted and integrated into consultation draft!')">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Accept Consensus & Apply
+        </button>
+        <button class="btn btn-outline" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.65rem 1.2rem; background: white; font-weight: 600; border-radius: 10px;" onclick="alert('Agent debate re-evaluation triggered across consensus nodes.')">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Request Agent Debate
+        </button>
+    </div>
+</div>
+
+<!-- 4 Specialized Agent Cards -->
+<div class="grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem;">
+    
+    <!-- 1. Diagnosis Agent -->
+    <div class="agent-card dx">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.85rem;">
+            <div style="display: flex; align-items: center; gap: 0.85rem;">
+                <div class="agent-avatar" style="background: #ef4444;">Dx</div>
+                <div>
+                    <div style="font-weight: 700; font-size: 1.05rem; color: var(--text-color);">Diagnosis Agent</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">Bayesian Clinical Inference</div>
+                </div>
+            </div>
+            <div style="text-align: right;">
+                <span class="badge" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; font-weight: 600; font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 6px;">94% Confidence</span>
+                <div class="confidence-meter" style="width: 80px;">
+                    <div class="confidence-fill" style="width: 94%; background: #ef4444;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.9rem;">
+            <div style="padding: 0.6rem 0.85rem; background: rgba(239, 68, 68, 0.04); border-left: 3px solid #ef4444; border-radius: 0 8px 8px 0;">
+                <strong style="color: #991b1b;">Primary:</strong> Essential (Primary) Hypertension (ICD-10 I10)
+            </div>
+            <div style="padding: 0.6rem 0.85rem; background: rgba(0,0,0,0.02); border-left: 3px solid #cbd5e1; border-radius: 0 8px 8px 0;">
+                <strong>Differential 1:</strong> Secondary Hypertension &bull; <span style="color: var(--text-secondary);">Rule out via renal artery ultrasound.</span>
+            </div>
+            <div style="padding: 0.6rem 0.85rem; background: rgba(0,0,0,0.02); border-left: 3px solid #cbd5e1; border-radius: 0 8px 8px 0;">
+                <strong>Differential 2:</strong> White Coat Effect &bull; <span style="color: #166534; font-weight: 500;">Excluded</span> <span style="color: var(--text-secondary);">by continuous ambulatory telemetry.</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Risk Assessment Agent -->
+    <div class="agent-card ra">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.85rem;">
+            <div style="display: flex; align-items: center; gap: 0.85rem;">
+                <div class="agent-avatar" style="background: #f97316;">RA</div>
+                <div>
+                    <div style="font-weight: 700; font-size: 1.05rem; color: var(--text-color);">Risk Assessment Agent</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">Longitudinal Trajectory Forecasting</div>
+                </div>
+            </div>
+            <div style="text-align: right;">
+                <span class="badge" style="background: rgba(249, 115, 22, 0.1); color: #f97316; font-weight: 600; font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 6px;">88% Precision</span>
+                <div class="confidence-meter" style="width: 80px;">
+                    <div class="confidence-fill" style="width: 88%; background: #f97316;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.9rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0.85rem; background: rgba(249, 115, 22, 0.05); border-radius: 8px;">
+                <span>10-Year ASCVD Risk Index:</span>
+                <strong style="color: #c2410c;">7.5% (Borderline)</strong>
+            </div>
+            <div style="padding: 0.6rem 0.85rem; background: rgba(0,0,0,0.02); border-radius: 8px;">
+                <strong>Compounding Risk:</strong> BMI drift +4% over preceding 12 months.
+            </div>
+            <div style="padding: 0.6rem 0.85rem; background: rgba(16, 185, 129, 0.04); border-radius: 8px;">
+                <strong>Protective Factor:</strong> 92% adherence to prescribed morning dosage.
+            </div>
+        </div>
+    </div>
+    
+    <!-- 3. Treatment Recommendation Agent -->
+    <div class="agent-card tx">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.85rem;">
+            <div style="display: flex; align-items: center; gap: 0.85rem;">
+                <div class="agent-avatar" style="background: #10b981;">Tx</div>
+                <div>
+                    <div style="font-weight: 700; font-size: 1.05rem; color: var(--text-color);">Treatment Agent</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">AHA/ACC 2024 Clinical Pathways</div>
+                </div>
+            </div>
+            <span class="badge" style="background: rgba(16, 185, 129, 0.1); color: #10b981; font-weight: 600; font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 6px;">Protocol Verified</span>
+        </div>
+        
+        <div style="display: flex; flex-direction: column; gap: 0.6rem; font-size: 0.9rem; line-height: 1.5;">
+            <div style="padding: 0.5rem 0.75rem; background: rgba(16, 185, 129, 0.05); border-left: 3px solid #10b981; border-radius: 0 8px 8px 0;">
+                <strong>First-Line Therapy:</strong> Transition from ACE Inhibitor to ARB (Losartan 50mg daily).
+            </div>
+            <div style="padding: 0.5rem 0.75rem; background: rgba(0,0,0,0.02); border-radius: 8px;">
+                <strong>Lifestyle Prescription:</strong> DASH dietary sodium limitation (&lt; 2,000 mg/day).
+            </div>
+            <div style="padding: 0.5rem 0.75rem; background: rgba(0,0,0,0.02); border-radius: 8px;">
+                <strong>Laboratory Schedule:</strong> Basic Metabolic Panel (BMP) + eGFR in 90 days.
+            </div>
+        </div>
+    </div>
+    
+    <!-- 4. Drug Interaction Agent -->
+    <div class="agent-card rx">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.85rem;">
+            <div style="display: flex; align-items: center; gap: 0.85rem;">
+                <div class="agent-avatar" style="background: #8b5cf6;">Rx</div>
+                <div>
+                    <div style="font-weight: 700; font-size: 1.05rem; color: var(--text-color);">Pharmacology AI Agent</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">PubMedBERT Interaction Graph</div>
+                </div>
+            </div>
+            <span class="badge" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; font-weight: 700; font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 6px;">1 Warning</span>
+        </div>
+        
+        <div style="background: rgba(239, 68, 68, 0.05); border-left: 3px solid #ef4444; padding: 0.75rem 1rem; border-radius: 0 8px 8px 0; margin-bottom: 0.75rem;">
+            <div style="font-weight: 700; color: #dc2626; font-size: 0.85rem; margin-bottom: 0.2rem;">Interaction Flag: ACE-I + NSAID (Ibuprofen)</div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4;">Patient reported intermittent NSAID use. Combination reduces antihypertensive efficacy and compromises renal perfusion.</div>
+        </div>
+        
+        <div style="font-size: 0.85rem; color: var(--text-color); background: rgba(139, 92, 246, 0.05); padding: 0.6rem 0.85rem; border-radius: 8px; border: 1px solid rgba(139, 92, 246, 0.15);">
+            <strong style="color: #6d28d9;">Recommended Substitution:</strong> Advise Acetaminophen for joint pain relief instead of OTC Ibuprofen.
+        </div>
+    </div>
+
+</div>
+
+<!-- ======================================================= -->
+<!-- NEXT-GEN DOCTOR INNOVATION: MULTI-AGENT DEBATE & COUNTERFACTUAL -->
+<!-- ======================================================= -->
+
+<div style="display: grid; grid-template-columns: 1.2fr 1.8fr; gap: 2rem; margin-top: 2.5rem; margin-bottom: 2rem;">
+    
+    <!-- 1. Multi-Agent "Consensus vs. Dissent" Debate Room -->
+    <div class="glass-panel" style="padding: 2rem; border-radius: 20px; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="font-size: 1.2rem;">⚔️</span>
+                    <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--heading-color);">Multi-Agent Debate Room</h3>
+                </div>
+                <button onclick="simulateNewDebateRound()" class="btn btn-outline" style="font-size: 0.75rem; padding: 0.25rem 0.6rem;">
+                    Re-Run Multi-Agent Debate
+                </button>
+            </div>
+
+            <div id="debateThread" style="display: flex; flex-direction: column; gap: 0.85rem; max-height: 380px; overflow-y: auto; padding-right: 0.25rem;">
+                <!-- Turn 1: Cardiology Dx -->
+                <div style="background: rgba(239,68,68,0.08); border-left: 3px solid #ef4444; border-radius: 0 10px 10px 0; padding: 0.75rem 0.9rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.2rem; font-size: 0.75rem;">
+                        <strong style="color: var(--danger-color);">Cardiology Agent (Dx)</strong>
+                        <span style="color: var(--text-muted);">Confidence: 94%</span>
+                    </div>
+                    <p style="margin: 0; font-size: 0.82rem; color: var(--text-color); line-height: 1.4;">
+                        "Ambulatory systolic spikes (136 mmHg) warrant escalating to Lisinopril 20mg daily to aggressively prevent early left-ventricular remodeling."
+                    </p>
+                </div>
+
+                <!-- Turn 2: Nephrology & Drug Agent Dissent -->
+                <div style="background: rgba(139,92,246,0.08); border-left: 3px solid #8b5cf6; border-radius: 0 10px 10px 0; padding: 0.75rem 0.9rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.2rem; font-size: 0.75rem;">
+                        <strong style="color: #a855f7;">Pharmacology Agent (Rx) &bull; DISSENT</strong>
+                        <span style="color: var(--danger-color); font-weight: 700;">Conflict Flagged</span>
+                    </div>
+                    <p style="margin: 0; font-size: 0.82rem; color: var(--text-color); line-height: 1.4;">
+                        "DISSENT: Patient exhibits cough hypersensitivity and intermittent NSAID ingestion. Doubling Lisinopril risks kinin-mediated bronchial cough and acute GFR drop."
+                    </p>
+                </div>
+
+                <!-- Turn 3: Treatment Consensus Resolution -->
+                <div style="background: rgba(16,185,129,0.08); border-left: 3px solid #10b981; border-radius: 0 10px 10px 0; padding: 0.75rem 0.9rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.2rem; font-size: 0.75rem;">
+                        <strong style="color: var(--success-color);">Treatment Consensus Agent</strong>
+                        <span style="color: var(--success-color); font-weight: 700;">Consensus Reached (91.5%)</span>
+                    </div>
+                    <p style="margin: 0; font-size: 0.82rem; color: var(--text-color); line-height: 1.4;">
+                        "RESOLVED: Switch from ACE-I to ARB (Losartan 50mg) + DASH dietary sodium limitation. Eliminates cough pathway while preserving renal filtration."
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 1rem; background: var(--surface-color); border-radius: 10px; padding: 0.65rem 0.9rem; font-size: 0.76rem; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-color);">
+            <span>Consensus Quorum: <strong style="color: var(--heading-color);">3/3 Agents Agreed</strong></span>
+            <span style="color: var(--success-color); font-weight: 700;">Zero Contradictions</span>
+        </div>
+    </div>
+
+    <!-- 2. Counterfactual Treatment Trajectory Simulator -->
+    <div class="glass-panel" style="padding: 2rem; border-radius: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div>
+                <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--heading-color);">Counterfactual Treatment Trajectory Modeler</h3>
+                <p style="margin: 0.15rem 0 0 0; color: var(--text-muted); font-size: 0.78rem;">Simulate and compare patient organ recovery and ASCVD risk across 3 parallel therapeutic strategies over 12 months.</p>
+            </div>
+            <div style="display: flex; gap: 0.4rem;">
+                <button onclick="setPlanTrajectory('a')" id="btnPlanA" class="btn btn-outline" style="font-size: 0.75rem; padding: 0.3rem 0.7rem; background: rgba(37,99,235,0.12); color: var(--primary-color); font-weight: 700;">Plan A: Current ACE-I</button>
+                <button onclick="setPlanTrajectory('b')" id="btnPlanB" class="btn btn-outline" style="font-size: 0.75rem; padding: 0.3rem 0.7rem;">Plan B: ARB + DASH</button>
+                <button onclick="setPlanTrajectory('c')" id="btnPlanC" class="btn btn-outline" style="font-size: 0.75rem; padding: 0.3rem 0.7rem;">Plan C: Dual Therapy</button>
+            </div>
+        </div>
+
+        <div style="height: 250px; position: relative; margin-bottom: 1rem;">
+            <canvas id="counterfactualChart"></canvas>
+        </div>
+
+        <div id="counterfactualSummary" style="background: var(--surface-color); border-radius: 12px; padding: 0.85rem 1.15rem; border: 1px solid var(--border-color); font-size: 0.82rem; color: var(--text-color);">
+            <strong>Plan A Projection:</strong> Maintains systolic BP ~126 mmHg. Modest 4% reduction in ASCVD risk; cough side-effect risk persists at 12% probability.
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Counterfactual Chart Simulation
+    const cfCtx = document.getElementById('counterfactualChart').getContext('2d');
+    const counterfactualChart = new Chart(cfCtx, {
+        type: 'line',
+        data: {
+            labels: ['Baseline (Now)', 'Month 3', 'Month 6', 'Month 9', 'Month 12'],
+            datasets: [
+                {
+                    label: 'Systolic BP (mmHg)',
+                    data: [134, 130, 128, 126, 125],
+                    borderColor: '#2563eb',
+                    backgroundColor: 'rgba(37, 99, 235, 0.08)',
+                    borderWidth: 2.5,
+                    tension: 0.35,
+                    fill: true
+                },
+                {
+                    label: '10-Yr ASCVD Risk %',
+                    data: [7.5, 7.2, 6.8, 6.5, 6.2],
+                    borderColor: '#10b981',
+                    borderWidth: 2.5,
+                    borderDash: [5, 5],
+                    tension: 0.35,
+                    yAxisID: 'y1'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    min: 110,
+                    max: 150,
+                    title: { display: true, text: 'Systolic BP (mmHg)', font: { size: 10 } }
+                },
+                y1: {
+                    position: 'right',
+                    min: 3,
+                    max: 12,
+                    grid: { display: false },
+                    title: { display: true, text: 'ASCVD Risk %', font: { size: 10 } }
+                }
+            }
+        }
+    });
+
+    const planData = {
+        a: {
+            bp: [134, 130, 128, 126, 125],
+            risk: [7.5, 7.2, 6.8, 6.5, 6.2],
+            summary: "<strong>Plan A (Current ACE-I Monotherapy):</strong> Maintains systolic BP ~125 mmHg. Modest 4% reduction in ASCVD risk; cough side-effect risk persists at 12% probability."
+        },
+        b: {
+            bp: [134, 126, 121, 118, 118],
+            risk: [7.5, 6.4, 5.5, 4.9, 4.6],
+            summary: "<strong>Plan B (Recommended ARB Losartan 50mg + DASH Protocol):</strong> Superior blood pressure optimization to 118 mmHg with significant 38% ASCVD risk drop and zero ACE-cough side effects."
+        },
+        c: {
+            bp: [134, 120, 114, 112, 112],
+            risk: [7.5, 5.8, 5.0, 4.6, 4.4],
+            summary: "<strong>Plan C (Dual ARB + Hydrochlorothiazide 12.5mg):</strong> Rapid blood pressure drop to 112 mmHg. Requires close electrolyte surveillance (serum potassium & uric acid)."
+        }
+    };
+
+    function setPlanTrajectory(planKey) {
+        ['a', 'b', 'c'].forEach(k => {
+            const btn = document.getElementById(`btnPlan${k.toUpperCase()}`);
+            if (k === planKey) {
+                btn.style.background = '#eff6ff';
+                btn.style.color = '#2563eb';
+                btn.style.fontWeight = '700';
+            } else {
+                btn.style.background = 'transparent';
+                btn.style.color = 'var(--text-color)';
+                btn.style.fontWeight = '500';
+            }
+        });
+
+        const p = planData[planKey];
+        counterfactualChart.data.datasets[0].data = p.bp;
+        counterfactualChart.data.datasets[1].data = p.risk;
+        counterfactualChart.update();
+        document.getElementById('counterfactualSummary').innerHTML = p.summary;
+    }
+
+    function simulateNewDebateRound() {
+        const thread = document.getElementById('debateThread');
+        thread.style.opacity = '0.5';
+        setTimeout(() => {
+            thread.style.opacity = '1';
+            alert('Multi-agent debate re-evaluated: Bayesian weights synchronized across Cardiology and Nephrology agents.');
+        }, 500);
+    }
+</script>
+{% endblock %}

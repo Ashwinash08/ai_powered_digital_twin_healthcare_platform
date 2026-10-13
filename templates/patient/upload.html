@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="dashboard-header" style="margin-bottom: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h1 style="margin: 0 0 0.35rem 0; font-size: 1.85rem; font-weight: 800; letter-spacing: -0.5px;">Medical Records & Lab Ingestion</h1>
+            <p style="color: var(--text-secondary); margin: 0; font-size: 0.92rem;">Ingest diagnostic panels, imaging reports, prescriptions, and wearable exports for automated Multi-Agent NLP calibration.</p>
+        </div>
+        <span class="badge badge-green" style="font-weight: 600; font-size: 0.8rem;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            AES-256 Encrypted Ingestion
+        </span>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1.1fr 1.3fr; gap: 2rem;">
+    
+    <!-- Upload Panel -->
+    <div class="glass-panel" style="padding: 2.25rem; border-radius: 20px;">
+        <h3 style="margin: 0 0 1.25rem 0; font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Upload Clinical Document
+        </h3>
+
+        <form method="post" action="{{ url_for('patient_upload') }}" enctype="multipart/form-data">
+            <div class="form-group" style="margin-bottom: 1.25rem;">
+                <label for="file_type">Document Classification</label>
+                <select id="file_type" name="file_type" class="form-control" required>
+                    <option value="Lab Report">Diagnostic Laboratory Panel (Lipids, CBC, HbA1c)</option>
+                    <option value="Prescription">Physician Prescription Slip</option>
+                    <option value="Wearable Data">Continuous Wearable Export (CSV/JSON)</option>
+                    <option value="Discharge Summary">Hospital Discharge Summary</option>
+                    <option value="Radiology / Imaging">Imaging / Radiology Report</option>
+                    <option value="Other">Other Clinical Document</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label>File Attachment (PDF, PNG, JPG)</label>
+                <div id="dropZone" style="border: 2px dashed var(--border-hover); border-radius: 16px; padding: 2.25rem 1.5rem; text-align: center; background: var(--surface-muted); transition: all 0.25s ease; cursor: pointer;" onclick="document.getElementById('fileInput').click();">
+                    <div style="width: 50px; height: 50px; border-radius: 14px; background: var(--surface-color); color: var(--primary-color); display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem auto; box-shadow: var(--shadow-sm);">
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    </div>
+                    <div id="fileNameDisplay" style="font-weight: 700; font-size: 0.95rem; color: var(--heading-color); margin-bottom: 0.25rem;">Click to browse or drag document here</div>
+                    <div style="font-size: 0.78rem; color: var(--text-muted);">Supports PDF, PNG, JPEG up to 25MB</div>
+                    <input type="file" id="fileInput" name="file" required accept=".pdf,.png,.jpg,.jpeg" style="display: none;" onchange="if(this.files.length) { document.getElementById('fileNameDisplay').innerText = 'Selected: ' + this.files[0].name; document.getElementById('dropZone').style.borderColor='#10b981'; document.getElementById('dropZone').style.background='rgba(16, 185, 129, 0.1)'; }">
+                </div>
+            </div>
+
+            <!-- Ingestion Pipeline Specs -->
+            <div class="profile-info-box" style="border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem; font-size: 0.8rem;">
+                <div style="font-weight: 700; color: var(--primary-color); margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.4rem;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    Multi-Agent NLP Extraction Pipeline
+                </div>
+                Extracted values (e.g., Total Cholesterol, Fasting Blood Glucose, Systolic/Diastolic) will automatically update your <strong>Digital Twin physiological model</strong> and trigger re-evaluation across all 4 clinical agents.
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.85rem; font-size: 0.92rem; font-weight: 700; border-radius: 12px;">
+                Upload & Calibrate Digital Twin
+            </button>
+        </form>
+    </div>
+
+    <!-- Document History & Storage Vault -->
+    <div class="glass-panel" style="padding: 2.25rem; border-radius: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                Ingested Medical Records
+            </h3>
+            <span class="badge badge-blue">{{ files|length if files else 0 }} Files Vaulted</span>
+        </div>
+
+        {% if files %}
+        <div style="overflow-x: auto;">
+            <table style="width: 100%;">
+                <thead>
+                    <tr>
+                        <th>Document Name</th>
+                        <th>Category</th>
+                        <th>Date</th>
+                        <th style="text-align: right;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for file in files %}
+                    <tr>
+                        <td>
+                            <div style="font-weight: 700; font-size: 0.88rem; color: var(--text-color); display: flex; align-items: center; gap: 0.4rem;">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+                                {{ file.filename }}
+                            </div>
+                            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.15rem;">Encrypted & Vectorized</div>
+                        </td>
+                        <td>
+                            <span class="badge badge-blue">{{ file.file_type }}</span>
+                        </td>
+                        <td style="font-size: 0.82rem; color: var(--text-muted);">
+                            {{ file.upload_date.split(' ')[0] if file.upload_date else 'Recent' }}
+                        </td>
+                        <td style="text-align: right;">
+                            <span class="badge badge-green">✓ Parsed</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="profile-info-box" style="padding: 3.5rem 1.5rem; text-align: center; border-radius: 16px; border: 1.5px dashed var(--border-color);">
+            <div style="width: 56px; height: 56px; border-radius: 16px; background: var(--badge-blue-bg); color: var(--primary-color); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem auto;">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <div style="font-weight: 700; font-size: 1rem; color: var(--heading-color);">No clinical documents uploaded yet</div>
+            <div style="font-size: 0.84rem; margin-top: 0.35rem; max-width: 320px; margin-left: auto; margin-right: auto; line-height: 1.4; color: var(--text-secondary);">
+                Upload diagnostic lab panels, imaging scans, or prescriptions to enrich your Digital Twin's multi-agent knowledge base.
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

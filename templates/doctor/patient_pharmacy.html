@@ -1,0 +1,449 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .rx-stat-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.25rem;
+        margin-bottom: 2rem;
+    }
+
+    @media (max-width: 1024px) {
+        .rx-stat-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    @media (max-width: 640px) {
+        .rx-stat-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .rx-stat-card {
+        background: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: 18px;
+        padding: 1.4rem 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1.15rem;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .rx-stat-card:hover {
+        transform: translateY(-2px);
+        border-color: var(--border-hover);
+        box-shadow: var(--shadow-md);
+    }
+
+    .rx-stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.35rem;
+        flex-shrink: 0;
+    }
+
+    .doctor-rx-table th {
+        padding: 1rem 1.25rem;
+        font-size: 0.76rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 700;
+        color: var(--table-th-color);
+        background: var(--table-th-bg);
+        border-bottom: 1.5px solid var(--border-color);
+    }
+
+    .doctor-rx-table td {
+        padding: 1.1rem 1.25rem;
+        font-size: 0.88rem;
+        border-bottom: 1px solid var(--border-color);
+        vertical-align: middle;
+    }
+
+    .doctor-rx-table tbody tr {
+        transition: background 0.15s ease;
+    }
+
+    .doctor-rx-table tbody tr:hover {
+        background: var(--surface-hover);
+    }
+
+    .form-control-custom {
+        width: 100%;
+        padding: 0.7rem 0.9rem;
+        border-radius: 12px;
+        border: 1.5px solid var(--border-color);
+        font-size: 0.9rem;
+        background: var(--input-bg);
+        color: var(--input-color);
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .form-control-custom:focus {
+        border-color: var(--primary-color);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+    }
+</style>
+
+<!-- Patient Header & Navigation (Standard Sub-Navigation) -->
+{% include 'doctor/_patient_nav.html' %}
+
+<!-- Doctor Pharmacotherapy Header -->
+<div class="dashboard-header" style="margin-bottom: 1.75rem; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <div style="display: flex; align-items: center; gap: 0.65rem; margin-bottom: 0.3rem;">
+            <h2 style="font-size: 1.65rem; margin: 0; font-weight: 800; letter-spacing: -0.5px; color: var(--heading-color);">Clinical Pharmacotherapy & Prescribing Suite</h2>
+            <span class="badge badge-blue" style="font-size: 0.75rem; padding: 0.25rem 0.65rem; border-radius: 20px; font-weight: 700;">
+                Rx Guardian Agent v2.4
+            </span>
+        </div>
+        <p style="color: var(--text-secondary); margin: 0; font-size: 0.92rem;">
+            AI-verified prescriptions, multi-agent DDI safety verification, patient adherence telemetry, and hospital dispensary inventory.
+        </p>
+    </div>
+    
+    <div style="display: flex; gap: 0.75rem; align-items: center;">
+        <button onclick="openPrescribeModal()" class="btn btn-primary" style="padding: 0.7rem 1.4rem; font-size: 0.9rem; font-weight: 700; border-radius: 12px; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Issue New Prescription
+        </button>
+    </div>
+</div>
+
+<!-- 4 Clinical Quick Metric Cards -->
+<div class="rx-stat-grid">
+    <!-- Card 1: Active Regimens -->
+    <div class="rx-stat-card">
+        <div class="rx-stat-icon" style="background: var(--badge-blue-bg); color: var(--primary-color);">
+            💊
+        </div>
+        <div style="flex: 1;">
+            <div style="font-size: 0.74rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Active Regimens</div>
+            <div style="font-size: 1.55rem; font-weight: 800; color: var(--heading-color); margin: 0.2rem 0;">{{ active_prescriptions | length }} <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Active</span></div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary);">{{ history_prescriptions | length }} past / titrated</div>
+        </div>
+    </div>
+
+    <!-- Card 2: 30-Day Adherence -->
+    <div class="rx-stat-card">
+        <div class="rx-stat-icon" style="background: var(--badge-green-bg); color: var(--success-color);">
+            📈
+        </div>
+        <div style="flex: 1;">
+            <div style="font-size: 0.74rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Patient Adherence Rate</div>
+            <div style="font-size: 1.55rem; font-weight: 800; color: var(--success-color); margin: 0.2rem 0;">{{ adherence_data.rate_30d }}%</div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary);">{{ adherence_data.streak_days }} Day streak &bull; {{ adherence_data.rate_7d }}% 7d</div>
+        </div>
+    </div>
+
+    <!-- Card 3: AI Safety & DDI Shield -->
+    <div class="rx-stat-card">
+        {% set crit_warnings = warnings | selectattr('severity', 'equalto', 'critical') | list %}
+        <div class="rx-stat-icon" style="background: {{ 'var(--badge-red-bg)' if crit_warnings else 'var(--badge-green-bg)' }}; color: {{ 'var(--danger-color)' if crit_warnings else 'var(--success-color)' }};">
+            {{ '⚠️' if crit_warnings else '🛡️' }}
+        </div>
+        <div style="flex: 1;">
+            <div style="font-size: 0.74rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">AI DDI & Allergy Guard</div>
+            <div style="font-size: 1.45rem; font-weight: 800; color: {{ 'var(--danger-color)' if crit_warnings else 'var(--success-color)' }}; margin: 0.2rem 0;">
+                {{ '1 Alert Flagged' if crit_warnings else 'Shield Active' }}
+            </div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary);">{{ warnings | length }} safety parameters screened</div>
+        </div>
+    </div>
+
+    <!-- Card 4: Twin Metabolic Stability -->
+    <div class="rx-stat-card">
+        <div class="rx-stat-icon" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8;">
+            🧬
+        </div>
+        <div style="flex: 1;">
+            <div style="font-size: 0.74rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Twin Metabolic Impact</div>
+            <div style="font-size: 1.55rem; font-weight: 800; color: #38bdf8; margin: 0.2rem 0;">{{ adherence_data.twin_impact.score_delta }}</div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary);">{{ adherence_data.twin_impact.status }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Active Prescriptions Management Panel -->
+<div class="glass-panel" style="border-radius: 20px; padding: 2rem; margin-bottom: 2rem; box-shadow: var(--shadow-sm);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div style="width: 38px; height: 38px; border-radius: 10px; background: var(--badge-blue-bg); color: var(--primary-color); display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                📋
+            </div>
+            <div>
+                <h3 style="margin: 0; font-size: 1.2rem; color: var(--heading-color); font-weight: 700;">Active Pharmacotherapy Regimens</h3>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">Current medications actively linked with patient digital twin telemetry</div>
+            </div>
+        </div>
+        <span class="badge badge-blue" style="font-size: 0.78rem; font-weight: 700; padding: 0.3rem 0.7rem;">
+            {{ active_prescriptions | length }} Active Regimens
+        </span>
+    </div>
+
+    {% if active_prescriptions %}
+    <div style="overflow-x: auto; border-radius: 14px; border: 1px solid var(--border-color);">
+        <table class="doctor-rx-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+                <tr>
+                    <th>Medication & Rx Number</th>
+                    <th>Strength & Route</th>
+                    <th>Schedule & Timing</th>
+                    <th>Refills Remaining</th>
+                    <th>AI Validation</th>
+                    <th>Clinical Directions</th>
+                    <th style="text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for rx in active_prescriptions %}
+                <tr>
+                    <td>
+                        <div style="font-weight: 700; color: var(--heading-color); font-size: 0.95rem;">{{ rx.medication_name }}</div>
+                        <div style="font-size: 0.78rem; color: var(--primary-color); font-family: monospace;">{{ rx.rx_number }}</div>
+                    </td>
+                    <td style="color: var(--text-secondary);">
+                        <div style="font-weight: 600; color: var(--text-color);">{{ rx.dosage }}</div>
+                        <div style="font-size: 0.78rem; color: var(--text-muted);">{{ rx.dosage_form }} ({{ rx.route }})</div>
+                    </td>
+                    <td>
+                        <div style="font-weight: 600; color: var(--text-color);">{{ rx.frequency }}</div>
+                        <div style="font-size: 0.76rem; color: var(--text-muted);">{{ rx.schedule_timing }}</div>
+                    </td>
+                    <td>
+                        <span style="font-weight: 800; font-size: 0.92rem; color: {{ 'var(--success-color)' if rx.refills_remaining > 0 else 'var(--danger-color)' }};">
+                            {{ rx.refills_remaining }}
+                        </span>
+                        <span style="font-size: 0.78rem; color: var(--text-muted);"> / {{ rx.refill_count }}</span>
+                    </td>
+                    <td>
+                        {% if rx.verification_status == 'verified' %}
+                        <span class="badge badge-green" style="font-size: 0.74rem; font-weight: 700; padding: 0.2rem 0.55rem;">
+                            ✓ Verified
+                        </span>
+                        {% else %}
+                        <span class="badge badge-red" style="font-size: 0.74rem; font-weight: 700; padding: 0.2rem 0.55rem;">
+                            ⚠️ Flagged
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td style="font-size: 0.82rem; color: var(--text-secondary); max-width: 260px; line-height: 1.45;">
+                        {{ rx.instructions or 'Take according to standard clinical protocol.' }}
+                    </td>
+                    <td style="text-align: right;">
+                        <form method="POST" action="{{ url_for('doctor_discontinue_prescription', rx_id=rx.id) }}" onsubmit="return confirm('Are you sure you want to discontinue {{ rx.medication_name }}?');" style="margin: 0; display: inline;">
+                            <input type="hidden" name="patient_id" value="{{ patient_id }}">
+                            <input type="hidden" name="discontinue_reason" value="Physician titrated off / therapeutic goal achieved">
+                            <button type="submit" class="btn btn-outline" style="padding: 0.4rem 0.85rem; font-size: 0.8rem; border-color: rgba(239, 68, 68, 0.4); color: var(--danger-color); border-radius: 10px; font-weight: 600;">
+                                Discontinue
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="text-align: center; color: var(--text-muted); padding: 3rem 1rem;">
+        <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">📋</div>
+        <h4 style="color: var(--heading-color); margin: 0 0 0.35rem;">No Active Prescriptions</h4>
+        <p style="margin: 0; font-size: 0.88rem;">There are no active prescriptions assigned to this patient. Click "Issue New Prescription" above to generate a regimen.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- 2 Column Layout: AI Pharmacology Safety Scanner & Dispensary Stock Availability -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 1.75rem; margin-bottom: 2rem;">
+    <!-- Left Column: AI Pharmacology Safety Scanner -->
+    <div class="glass-panel" style="border-radius: 20px; padding: 1.75rem; box-shadow: var(--shadow-sm);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 0.6rem;">
+                <span style="font-size: 1.3rem;">🛡️</span>
+                <h3 style="margin: 0; font-size: 1.15rem; color: var(--heading-color); font-weight: 700;">AI Pharmacology Safety Scanner</h3>
+            </div>
+            <span class="badge badge-amber" style="font-size: 0.74rem;">{{ warnings | length }} Insights</span>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 0.9rem;">
+            {% for w in warnings %}
+            <div style="background: var(--card-inner-bg); border-left: 4px solid {{ 'var(--danger-color)' if w.severity == 'critical' else ('var(--warning-color)' if w.severity in ['high', 'medium'] else 'var(--primary-color)') }}; border-radius: 12px; padding: 1.1rem; border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.35rem;">
+                    <div style="font-weight: 700; color: var(--heading-color); font-size: 0.92rem;">{{ w.title }}</div>
+                    <span class="badge {{ 'badge-red' if w.severity == 'critical' else ('badge-amber' if w.severity in ['high', 'medium'] else 'badge-blue') }}" style="font-size: 0.7rem; padding: 0.15rem 0.45rem; font-weight: 800;">
+                        {{ w.severity | upper }}
+                    </span>
+                </div>
+                <div style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 0.5rem; line-height: 1.45;">
+                    {{ w.description }}
+                </div>
+                <div class="profile-info-box" style="padding: 0.55rem 0.75rem; border-radius: 8px; font-size: 0.8rem;">
+                    <strong style="color: var(--primary-color);">Clinical Directive:</strong> {{ w.recommendation }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Right Column: Hospital Central Dispensary Inventory -->
+    <div class="glass-panel" style="border-radius: 20px; padding: 1.75rem; box-shadow: var(--shadow-sm);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 0.6rem;">
+                <span style="font-size: 1.3rem;">📦</span>
+                <h3 style="margin: 0; font-size: 1.15rem; color: var(--heading-color); font-weight: 700;">Hospital Dispensary Stock Availability</h3>
+            </div>
+            <span class="badge badge-green" style="font-size: 0.74rem;">Live Dispensary Sync</span>
+        </div>
+
+        <div style="max-height: 420px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.75rem; padding-right: 0.25rem;">
+            {% for item in inventory %}
+            <div style="background: var(--card-inner-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 0.9rem 1.1rem; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s ease;">
+                <div>
+                    <div style="font-weight: 700; color: var(--heading-color); font-size: 0.88rem;">{{ item.medication_name }} <span style="color: var(--primary-color);">{{ item.dosage_strength }}</span></div>
+                    <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 0.15rem;">{{ item.category }} &bull; Shelf: {{ item.location_shelf }} &bull; ${{ "%.2f"|format(item.copay_amount) }} co-pay</div>
+                </div>
+                <div>
+                    {% if item.status == 'in_stock' %}
+                    <span class="badge badge-green" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; font-weight: 700;">
+                        {{ item.stock_quantity }} In Stock
+                    </span>
+                    {% elif item.status == 'low_stock' %}
+                    <span class="badge badge-amber" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; font-weight: 700;">
+                        {{ item.stock_quantity }} Low Stock
+                    </span>
+                    {% else %}
+                    <span class="badge badge-red" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; font-weight: 700;">
+                        Out of Stock
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- ISSUE NEW PRESCRIPTION MODAL (Cohesive Glassmorphism Design) -->
+<!-- ========================================================================= -->
+<div id="prescribeModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 1200; align-items: center; justify-content: center; padding: 1.5rem;">
+    <div class="glass-panel" style="background: var(--card-bg) !important; width: 100%; max-width: 680px; max-height: 90vh; overflow-y: auto; padding: 2.25rem; border-radius: 24px; box-shadow: var(--shadow-lg); border: 2px solid rgba(56, 189, 248, 0.35);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.85rem;">
+                <div style="width: 46px; height: 46px; border-radius: 14px; background: var(--badge-blue-bg); color: var(--primary-color); display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">
+                    📝
+                </div>
+                <div>
+                    <h3 style="margin: 0; color: var(--heading-color); font-size: 1.3rem; font-weight: 800;">Generate Digital Prescription</h3>
+                    <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.15rem;">Patient: {{ patient.display_name }} &bull; Digital Twin Telemetry Connected</div>
+                </div>
+            </div>
+            <button onclick="closePrescribeModal()" style="background: none; border: none; font-size: 1.6rem; cursor: pointer; color: var(--text-muted); padding: 0.2rem 0.5rem; line-height: 1;">&times;</button>
+        </div>
+
+        <form method="POST" action="{{ url_for('doctor_prescribe_medication', patient_id=patient_id) }}">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.1rem;">
+                <div>
+                    <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--text-color); margin-bottom: 0.4rem; text-transform: uppercase;">Medication Brand Name *</label>
+                    <input type="text" name="medication_name" class="form-control-custom" required placeholder="e.g. Lisinopril, Atorvastatin">
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--text-color); margin-bottom: 0.4rem; text-transform: uppercase;">Generic Active Compound</label>
+                    <input type="text" name="generic_name" class="form-control-custom" placeholder="e.g. Lisinopril USP">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1.1rem;">
+                <div>
+                    <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--text-color); margin-bottom: 0.4rem; text-transform: uppercase;">Dosage / Strength *</label>
+                    <input type="text" name="dosage" class="form-control-custom" required placeholder="e.g. 10mg, 500mg">
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--text-color); margin-bottom: 0.4rem; text-transform: uppercase;">Form</label>
+                    <select name="dosage_form" class="form-control-custom">
+                        <option value="Tablet">Tablet</option>
+                        <option value="Capsule">Capsule</option>
+                        <option value="Liquid Softgel">Liquid Softgel</option>
+                        <option value="Inhaler">Inhaler</option>
+                        <option value="Extended Release Tab">Extended Release Tab</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--text-color); margin-bottom: 0.4rem; text-transform: uppercase;">Route</label>
+                    <select name="route" class="form-control-custom">
+                        <option value="Oral">Oral</option>
+                        <option value="Inhalation">Inhalation</option>
+                        <option value="Sublingual">Sublingual</option>
+                        <option value="Topical">Topical</option>
+                        <option value="Subcutaneous">Subcutaneous</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1.1rem;">
+                <div>
+                    <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--text-color); margin-bottom: 0.4rem; text-transform: uppercase;">Frequency</label>
+                    <select name="frequency" class="form-control-custom">
+                        <option value="Once Daily">Once Daily (QD)</option>
+                        <option value="Twice Daily">Twice Daily (BID)</option>
+                        <option value="Three Times Daily">Three Times Daily (TID)</option>
+                        <option value="Once Nightly">Once Nightly (QHS)</option>
+                        <option value="As Needed">As Needed (PRN)</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--text-color); margin-bottom: 0.4rem; text-transform: uppercase;">Schedule Timing</label>
+                    <select name="schedule_timing" class="form-control-custom">
+                        <option value="Morning (08:00 AM)">Morning (08:00 AM)</option>
+                        <option value="Midday (01:00 PM)">Midday (01:00 PM)</option>
+                        <option value="Evening (07:00 PM)">Evening (07:00 PM)</option>
+                        <option value="Bedtime (10:00 PM)">Bedtime (10:00 PM)</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--text-color); margin-bottom: 0.4rem; text-transform: uppercase;">Refills Allowed</label>
+                    <input type="number" name="refill_count" min="0" max="11" value="3" class="form-control-custom">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 1.25rem;">
+                <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--text-color); margin-bottom: 0.4rem; text-transform: uppercase;">Administration Instructions & Clinical Directives</label>
+                <textarea name="instructions" rows="2" class="form-control-custom" placeholder="e.g. Take 1 tablet with water in morning. Avoid grapefruit juice and monitor evening BP..."></textarea>
+            </div>
+
+            <div class="profile-info-box" style="padding: 0.85rem 1rem; border-radius: 12px; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.6rem;">
+                <span style="font-size: 1.1rem;">🔒</span>
+                <div>
+                    <strong>AI Safety Shield Active:</strong> Auto-screened against recorded patient allergies ({{ patient.allergies or 'None Documented' }}) and logged into Digital Twin chronotherapy schedule.
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+                <button type="button" onclick="closePrescribeModal()" class="btn btn-outline" style="padding: 0.65rem 1.35rem; font-size: 0.88rem; border-radius: 12px;">Cancel</button>
+                <button type="submit" class="btn btn-primary" style="padding: 0.65rem 1.6rem; font-size: 0.88rem; font-weight: 700; border-radius: 12px; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);">
+                    Sign & Authorize Prescription
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openPrescribeModal() {
+        document.getElementById('prescribeModal').style.display = 'flex';
+    }
+    function closePrescribeModal() {
+        document.getElementById('prescribeModal').style.display = 'none';
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+{% include 'doctor/_patient_nav.html' %}
+
+<div class="dashboard-header" style="margin-bottom: 2rem;">
+    <h2 style="font-size: 1.5rem; margin-bottom: 0.25rem;">Explainable AI (XAI)</h2>
+    <p style="color: var(--text-secondary);">Understand the underlying logic, feature importance, and confidence of AI predictions.</p>
+</div>
+
+<div class="grid" style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; margin-bottom: 2rem;">
+    
+    <!-- Prediction Confidence -->
+    <div class="glass-panel" style="padding: 2rem; display: flex; flex-direction: column; justify-content: center;">
+        <h3 style="margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">Diagnosis: Hypertension Risk</h3>
+        
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+            <div style="position: relative; width: 160px; height: 160px; margin: 0 auto; display: flex; justify-content: center; align-items: center;">
+                <svg width="160" height="160" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(239, 68, 68, 0.2)" stroke-width="8"></circle>
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="#ef4444" stroke-width="8" stroke-dasharray="283" stroke-dashoffset="42" stroke-linecap="round" transform="rotate(-90 50 50)"></circle>
+                </svg>
+                <div style="position: absolute;">
+                    <div style="font-size: 2.5rem; font-weight: 700; color: #ef4444; line-height: 1;">85<span style="font-size: 1rem;">%</span></div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; margin-top: 0.25rem;">Confidence</div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="background: rgba(239, 68, 68, 0.05); border-left: 4px solid #ef4444; padding: 1rem; border-radius: 0 8px 8px 0;">
+            <div style="font-size: 0.85rem; font-weight: 600; color: #ef4444; margin-bottom: 0.25rem;">Model Certainty: High</div>
+            <div style="font-size: 0.85rem; color: var(--text-color);">The neural network ensemble is highly confident in this prediction due to consistent historical telemetry data aligning with known pathology patterns.</div>
+        </div>
+    </div>
+
+    <!-- Feature Importance (SHAP) -->
+    <div class="glass-panel" style="padding: 2rem;">
+        <h3 style="margin-bottom: 0.5rem;">Local Feature Importance (SHAP Values)</h3>
+        <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.5rem;">Displays how specific patient features contributed to pushing the model's prediction higher (red) or lower (green) from the baseline risk.</p>
+        
+        <div style="height: 300px;">
+            <canvas id="shapChart"></canvas>
+        </div>
+    </div>
+    
+</div>
+
+<!-- Counterfactual Explanations -->
+<div class="glass-panel" style="padding: 2rem;">
+    <h3 style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+        Counterfactual "What-If" Analysis
+    </h3>
+    <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.5rem;">The AI generated these hypothetical scenarios to explain what specific changes would alter its prediction boundary.</p>
+    
+    <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+        <div style="background: var(--surface-muted); border: 1px solid rgba(34, 197, 94, 0.3); padding: 1.5rem; border-radius: 12px;">
+            <div style="font-weight: 600; color: #22c55e; margin-bottom: 0.5rem;">Weight Reduction Scenario</div>
+            <p style="font-size: 0.9rem; color: var(--text-color); line-height: 1.5; margin: 0;">
+                If the patient's <strong>BMI</strong> was reduced from <strong>28.4</strong> to <strong>24.9 (Normal)</strong>, holding all other features constant, the AI's predicted risk of severe hypertension would drop from <strong>85%</strong> to <strong>42%</strong>.
+            </p>
+        </div>
+        
+        <div style="background: var(--surface-muted); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 12px;">
+            <div style="font-weight: 600; color: var(--primary-color); margin-bottom: 0.5rem;">Sleep Architecture Scenario</div>
+            <p style="font-size: 0.9rem; color: var(--text-color); line-height: 1.5; margin: 0;">
+                If the patient's average <strong>Deep Sleep Duration</strong> increased from <strong>45 mins</strong> to <strong>90 mins</strong>, the model's confidence in near-term cardiovascular events would decrease by <strong>18%</strong> due to improved modeled recovery metrics.
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+    const ctx = document.getElementById('shapChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Average Systolic BP (135)', 'Current BMI (28.4)', 'Family History (Positive)', 'Resting HR (82)', 'Weekly Activity (120 min)'],
+            datasets: [{
+                label: 'SHAP Value (Impact on Prediction)',
+                data: [0.35, 0.20, 0.15, 0.08, -0.12], // Positive values push risk up, negative pushes down
+                backgroundColor: [
+                    'rgba(239, 68, 68, 0.8)', // Red
+                    'rgba(239, 68, 68, 0.8)',
+                    'rgba(239, 68, 68, 0.8)',
+                    'rgba(239, 68, 68, 0.8)',
+                    'rgba(34, 197, 94, 0.8)'  // Green
+                ],
+                borderRadius: 4
+            }]
+        },
+        options: {
+            indexAxis: 'y', // Horizontal bar chart
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let val = context.raw;
+                            let prefix = val > 0 ? 'Increases risk by: +' : 'Decreases risk by: ';
+                            return prefix + val.toFixed(2);
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    title: { display: true, text: 'SHAP Value (Log Odds)' },
+                    grid: { color: 'rgba(0,0,0,0.05)' }
+                },
+                y: {
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

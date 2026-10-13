@@ -1,0 +1,1976 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Realistic & Clean Human Digital Twin Intelligence Platform -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<style>
+    /* =========================================================================
+       CLEAN, MODERN & REALISTIC DIGITAL TWIN STYLING
+       ========================================================================= */
+    html, body {
+        overflow-y: hidden !important;
+    }
+
+    .twin-viewport {
+        position: relative;
+        width: 100%;
+        height: calc(100vh - 84px);
+        max-height: calc(100vh - 84px);
+        box-sizing: border-box;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        gap: 0.65rem;
+        padding: 0.75rem 1rem;
+        background: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        box-shadow: var(--shadow-md);
+        font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    [data-theme="dark"] .twin-viewport {
+        background: linear-gradient(180deg, #091322 0%, #060c16 100%);
+        border-color: rgba(56, 189, 248, 0.2);
+    }
+
+    [data-theme="light"] .twin-viewport {
+        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        border-color: #e2e8f0;
+    }
+
+    /* Top Clean Header */
+    .twin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--border-color);
+        flex-shrink: 0;
+    }
+
+    .twin-header-left {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+    }
+
+    .twin-header-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background: var(--badge-blue-bg);
+        border: 1px solid var(--badge-blue-border);
+        color: var(--primary-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .twin-header-titles h1 {
+        font-size: 1.15rem;
+        font-weight: 800;
+        letter-spacing: -0.3px;
+        margin: 0;
+        color: var(--heading-color);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .twin-header-titles p {
+        margin: 0.1rem 0 0 0;
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+    }
+
+    .status-pulse-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.2rem 0.55rem;
+        border-radius: 20px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        background: rgba(16, 185, 129, 0.12);
+        color: #10b981;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .pulse-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #10b981;
+        box-shadow: 0 0 8px #10b981;
+        animation: pulseAnimation 2s infinite ease-in-out;
+    }
+
+    @keyframes pulseAnimation {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.4); opacity: 0.5; }
+    }
+
+    .twin-header-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+    }
+
+    .btn-twin-ctrl {
+        background: var(--card-inner-bg);
+        border: 1px solid var(--border-color);
+        color: var(--text-secondary);
+        padding: 0.35rem 0.7rem;
+        border-radius: 8px;
+        font-size: 0.72rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        text-decoration: none;
+    }
+
+    .btn-twin-ctrl:hover, .btn-twin-ctrl.active {
+        background: var(--badge-blue-bg);
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+        transform: translateY(-1px);
+    }
+
+    /* 3-Column Layout */
+    .twin-layout-grid {
+        display: grid;
+        grid-template-columns: 290px 1fr 300px;
+        gap: 0.75rem;
+        flex: 1;
+        min-height: 0;
+        align-items: stretch;
+    }
+
+    /* Clean Card Architecture */
+    .twin-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 0.65rem;
+        min-height: 0;
+    }
+
+    .neat-card {
+        background: var(--card-inner-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        padding: 0.75rem 0.85rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-shadow: var(--shadow-sm);
+        transition: border-color 0.2s ease;
+    }
+
+    .neat-card:hover {
+        border-color: var(--border-hover);
+    }
+
+    .neat-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.45rem;
+    }
+
+    .neat-card-header h3 {
+        font-size: 0.80rem;
+        font-weight: 700;
+        margin: 0;
+        color: var(--heading-color);
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+
+    /* Metric Grid */
+    .vitals-neat-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.45rem;
+    }
+
+    .neat-vital-tile {
+        background: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 0.45rem 0.6rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .neat-vital-label {
+        font-size: 0.64rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+
+    .neat-vital-value {
+        font-size: 1.15rem;
+        font-weight: 800;
+        line-height: 1.15;
+        margin-top: 0.1rem;
+        font-feature-settings: "tnum";
+    }
+
+    .neat-vital-unit {
+        font-size: 0.65rem;
+        font-weight: 500;
+        color: var(--text-muted);
+    }
+
+    /* Live 2D ECG & Waveform */
+    .ecg-box {
+        background: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 0.4rem 0.5rem;
+        margin-top: 0.45rem;
+    }
+
+    .ecg-header {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.66rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        margin-bottom: 0.2rem;
+    }
+
+    #neatEcgCanvas {
+        width: 100%;
+        height: 38px;
+        display: block;
+    }
+
+    #neatDnaCanvas {
+        width: 100%;
+        height: 48px;
+        display: block;
+    }
+
+    #neatTrajectoryCanvas {
+        width: 100%;
+        height: 48px;
+        display: block;
+    }
+
+    /* ================= CENTER 3D STAGE ================= */
+    .twin-3d-stage {
+        position: relative;
+        background: var(--card-inner-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    [data-theme="dark"] .twin-3d-stage {
+        background: radial-gradient(circle at 50% 50%, #0d1e38 0%, #060e1c 70%, #02060e 100%);
+        box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.5);
+    }
+
+    [data-theme="light"] .twin-3d-stage {
+        background: radial-gradient(circle at 50% 50%, #f0f7ff 0%, #e2eeff 75%, #d6e6fe 100%);
+        box-shadow: inset 0 0 40px rgba(2, 132, 199, 0.05);
+    }
+
+    /* Interactive 3D Canvas */
+    .twin-canvas-wrapper {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        flex: 1;
+        min-height: 0;
+        cursor: grab;
+    }
+
+    .twin-canvas-wrapper:active {
+        cursor: grabbing;
+    }
+
+    #threeDHumanCanvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100% !important;
+        height: 100% !important;
+        display: block;
+    }
+
+    /* Minimalist Floating Inspection Card */
+    .stage-inspector-pill {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        max-width: 260px;
+        background: var(--surface-color);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 0.65rem 0.8rem;
+        box-shadow: var(--shadow-md);
+        z-index: 10;
+        transition: all 0.25s ease;
+    }
+
+    .inspector-title {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--heading-color);
+        margin: 0 0 0.2rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .inspector-desc {
+        font-size: 0.68rem;
+        color: var(--text-secondary);
+        line-height: 1.35;
+        margin: 0 0 0.35rem 0;
+    }
+
+    .inspector-metrics {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.66rem;
+        font-weight: 600;
+        padding-top: 0.3rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    /* Stage Controls Overlay */
+    .stage-quick-controls {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+        z-index: 10;
+    }
+
+    .stage-chip-btn {
+        background: var(--surface-color);
+        border: 1px solid var(--border-color);
+        color: var(--text-secondary);
+        padding: 0.25rem 0.55rem;
+        border-radius: 8px;
+        font-size: 0.68rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        backdrop-filter: blur(10px);
+        box-shadow: var(--shadow-sm);
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .stage-chip-btn:hover {
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+        transform: translateY(-1px);
+    }
+
+    /* Clean Bottom Organ System Selector */
+    .stage-bottom-filter-bar {
+        position: relative;
+        z-index: 10;
+        display: flex;
+        gap: 0.35rem;
+        padding: 0.45rem 0.75rem;
+        background: var(--surface-color);
+        border-top: 1px solid var(--border-color);
+        width: 100%;
+        overflow-x: auto;
+        justify-content: center;
+        flex-shrink: 0;
+        backdrop-filter: blur(12px);
+    }
+
+    .filter-tab-pill {
+        background: var(--card-inner-bg);
+        border: 1px solid var(--border-color);
+        color: var(--text-secondary);
+        padding: 0.28rem 0.6rem;
+        border-radius: 8px;
+        font-size: 0.70rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        white-space: nowrap;
+    }
+
+    .filter-tab-pill:hover, .filter-tab-pill.active {
+        background: var(--badge-blue-bg);
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+        box-shadow: 0 0 10px rgba(56, 189, 248, 0.25);
+        transform: translateY(-1px);
+    }
+
+    /* Right Column - Organ Health Progress */
+    .organ-health-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+    }
+
+    .organ-health-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+        cursor: pointer;
+        padding: 0.25rem 0.35rem;
+        border-radius: 8px;
+        transition: background 0.15s ease;
+    }
+
+    .organ-health-item:hover {
+        background: var(--surface-color);
+    }
+
+    .organ-health-meta {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.69rem;
+        font-weight: 600;
+        color: var(--text-color);
+    }
+
+    .organ-health-track {
+        width: 100%;
+        height: 6px;
+        border-radius: 3px;
+        background: var(--border-color);
+        overflow: hidden;
+    }
+
+    .organ-health-fill {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 0.6s ease;
+    }
+
+    /* Composite Health Score Banner */
+    .health-score-card {
+        background: linear-gradient(135deg, var(--badge-blue-bg) 0%, var(--badge-green-bg) 100%);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 0.55rem 0.8rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .score-big-num {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: var(--success-color);
+        line-height: 1;
+        font-feature-settings: "tnum";
+    }
+
+    @media (max-width: 1180px) {
+        .twin-layout-grid {
+            grid-template-columns: 240px 1fr 250px;
+        }
+    }
+</style>
+
+<div class="twin-viewport" id="twinViewport">
+    
+    <!-- Top Clean Navigation Bar -->
+    <div class="twin-header">
+        <div class="twin-header-left">
+            <div class="twin-header-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.78-.77-.78a5.4 5.4 0 0 0-7.65 7.65l.77.78L12 20.66l7.65-7.65.77-.78a5.4 5.4 0 0 0 0-7.65z"/></svg>
+            </div>
+            <div class="twin-header-titles">
+                <h1>
+                    Patient Digital Twin
+                    <span class="status-pulse-pill">
+                        <span class="pulse-dot"></span> Real-Time Synced
+                    </span>
+                </h1>
+                <p>High-Precision Multi-Organ Simulation &bull; Telemetry ID #PT-{{ g.user.id if g.user else '2026' }}-TWIN</p>
+            </div>
+        </div>
+
+        <div class="twin-header-actions">
+            <button class="btn-twin-ctrl active" id="btnOrbitToggle" onclick="toggleTwinOrbit()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                <span id="orbitTxt">Orbit: Active</span>
+            </button>
+            <button class="btn-twin-ctrl" onclick="resetTwinCamera()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+                Reset Frame
+            </button>
+            <button class="btn-twin-ctrl" onclick="toggleViewMode()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <span id="viewModeTxt">Mode: Anatomy</span>
+            </button>
+            <button class="btn-twin-ctrl" onclick="toggleFullView()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+                Fullscreen
+            </button>
+            <a href="{{ url_for('patient_dashboard') }}" class="btn-twin-ctrl">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- 3-Column Dashboard Body -->
+    <div class="twin-layout-grid">
+        
+        <!-- LEFT PANEL: Real-time Telemetry & Vital Signs -->
+        <div class="twin-panel">
+            
+            <!-- Card 1: Continuous Physiological Vitals -->
+            <div class="neat-card" style="flex: 1.25;">
+                <div>
+                    <div class="neat-card-header">
+                        <h3>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="color: #ef4444;"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                            Continuous Telemetry
+                        </h3>
+                        <span class="badge badge-green" style="font-size: 0.62rem; padding: 0.1rem 0.35rem;">IoT Stream</span>
+                    </div>
+
+                    <div class="vitals-neat-grid">
+                        <div class="neat-vital-tile">
+                            <span class="neat-vital-label">Heart Rate</span>
+                            <span class="neat-vital-value" style="color: #ef4444;">74 <span class="neat-vital-unit">BPM</span></span>
+                        </div>
+                        <div class="neat-vital-tile">
+                            <span class="neat-vital-label">Blood Pressure</span>
+                            <span class="neat-vital-value" style="color: var(--primary-color);">122/80 <span class="neat-vital-unit">mmHg</span></span>
+                        </div>
+                        <div class="neat-vital-tile">
+                            <span class="neat-vital-label">SpO2 Oxygen</span>
+                            <span class="neat-vital-value" style="color: #0284c7;">98.5 <span class="neat-vital-unit">%</span></span>
+                        </div>
+                        <div class="neat-vital-tile">
+                            <span class="neat-vital-label">Core Temp</span>
+                            <span class="neat-vital-value" style="color: var(--warning-color);">36.8 <span class="neat-vital-unit">°C</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lead II Live ECG Waveform -->
+                <div class="ecg-box">
+                    <div class="ecg-header">
+                        <span>Lead II Cardiac Rhythm</span>
+                        <span style="color: var(--success-color);">Normal Sinus Rhythm</span>
+                    </div>
+                    <canvas id="neatEcgCanvas"></canvas>
+                </div>
+            </div>
+
+            <!-- Card 2: Molecular & Genomic Alignment -->
+            <div class="neat-card" style="flex: 0.75;">
+                <div class="neat-card-header">
+                    <h3>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="color: var(--primary-color);"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                        Genomic Stability
+                    </h3>
+                    <span class="badge badge-blue" style="font-size: 0.62rem; padding: 0.1rem 0.35rem;">DNA v2.4</span>
+                </div>
+                <canvas id="neatDnaCanvas"></canvas>
+                <div style="display: flex; justify-content: space-between; font-size: 0.67rem; color: var(--text-secondary); margin-top: 0.15rem;">
+                    <span>Sequence Alignment: <strong>99.8%</strong></span>
+                    <span style="color: var(--success-color); font-weight: 600;">Calibrated</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- CENTER STAGE: Photorealistic & Clean 3D Human Digital Twin -->
+        <div class="twin-3d-stage">
+            
+            <!-- Contextual Organ Inspection HUD -->
+            <div class="stage-inspector-pill" id="stageInspector">
+                <div class="inspector-title" id="inspTitle">❤️ Cardiovascular System</div>
+                <div class="inspector-desc" id="inspDesc">
+                    Cardiac output 4.9 L/min &bull; Arterial compliance within optimal physiological range under current medication.
+                </div>
+                <div class="inspector-metrics">
+                    <span style="color: var(--primary-color);" id="inspP1">Pulse: 74 bpm</span>
+                    <span style="color: var(--success-color);" id="inspP2">Status: Optimal</span>
+                </div>
+            </div>
+
+            <!-- Top Right Quick Controls -->
+            <div class="stage-quick-controls">
+                <div class="stage-chip-btn" onclick="resetTwinCamera()">
+                    <span>🎯</span> Auto Center
+                </div>
+                <div class="stage-chip-btn" onclick="togglePulseRate()">
+                    <span>⚡</span> <span id="pulseRateTxt">Pulse: 74 BPM</span>
+                </div>
+            </div>
+
+            <!-- 3D Canvas Viewport Holder -->
+            <div class="twin-canvas-wrapper" id="twinCanvasWrapper">
+                <canvas id="threeDHumanCanvas"></canvas>
+            </div>
+
+            <!-- Bottom Organ System Filter Tabs -->
+            <div class="stage-bottom-filter-bar">
+                <button class="filter-tab-pill active" onclick="selectOrganSystem('all', this)">🌐 Full Body</button>
+                <button class="filter-tab-pill" onclick="selectOrganSystem('heart', this)">❤️ Heart & Vessels</button>
+                <button class="filter-tab-pill" onclick="selectOrganSystem('brain', this)">🧠 Brain & Neural</button>
+                <button class="filter-tab-pill" onclick="selectOrganSystem('lungs', this)">🫁 Lungs & Airway</button>
+                <button class="filter-tab-pill" onclick="selectOrganSystem('spine', this)">🦴 Skeleton & Ribs</button>
+                <button class="filter-tab-pill" onclick="selectOrganSystem('metabolism', this)">⚡ Visceral & Liver</button>
+            </div>
+
+        </div>
+
+        <!-- RIGHT PANEL: Multi-Organ Health Index & 24h Trajectory -->
+        <div class="twin-panel">
+            
+            <!-- Card 1: Multi-Organ Health Matrix -->
+            <div class="neat-card" style="flex: 1.25;">
+                <div>
+                    <div class="neat-card-header">
+                        <h3>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="color: var(--success-color);"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                            Organ Health Index
+                        </h3>
+                        <span class="badge badge-green" style="font-size: 0.62rem; padding: 0.1rem 0.35rem;">5 Systems</span>
+                    </div>
+
+                    <div class="organ-health-list">
+                        <div class="organ-health-item" onclick="selectOrganSystem('heart')">
+                            <div class="organ-health-meta">
+                                <span>❤️ Cardiovascular</span>
+                                <span style="color: var(--primary-color);">94%</span>
+                            </div>
+                            <div class="organ-health-track">
+                                <div class="organ-health-fill" style="width: 94%; background: var(--primary-color);"></div>
+                            </div>
+                        </div>
+
+                        <div class="organ-health-item" onclick="selectOrganSystem('brain')">
+                            <div class="organ-health-meta">
+                                <span>🧠 Neurological</span>
+                                <span style="color: #10b981;">91%</span>
+                            </div>
+                            <div class="organ-health-track">
+                                <div class="organ-health-fill" style="width: 91%; background: #10b981;"></div>
+                            </div>
+                        </div>
+
+                        <div class="organ-health-item" onclick="selectOrganSystem('lungs')">
+                            <div class="organ-health-meta">
+                                <span>🫁 Pulmonary / SpO2</span>
+                                <span style="color: #0284c7;">96%</span>
+                            </div>
+                            <div class="organ-health-track">
+                                <div class="organ-health-fill" style="width: 96%; background: #0284c7;"></div>
+                            </div>
+                        </div>
+
+                        <div class="organ-health-item" onclick="selectOrganSystem('metabolism')">
+                            <div class="organ-health-meta">
+                                <span>⚡ Metabolic & Hepatic</span>
+                                <span style="color: #f59e0b;">88%</span>
+                            </div>
+                            <div class="organ-health-track">
+                                <div class="organ-health-fill" style="width: 88%; background: #f59e0b;"></div>
+                            </div>
+                        </div>
+
+                        <div class="organ-health-item" onclick="selectOrganSystem('spine')">
+                            <div class="organ-health-meta">
+                                <span>🦴 Musculoskeletal</span>
+                                <span style="color: #8b5cf6;">95%</span>
+                            </div>
+                            <div class="organ-health-track">
+                                <div class="organ-health-fill" style="width: 95%; background: #8b5cf6;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Composite Digital Twin Score -->
+                <div class="health-score-card">
+                    <div>
+                        <div style="font-size: 0.62rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Twin Composite Score</div>
+                        <div style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 0.05rem;">Multi-Agent Calibrated</div>
+                    </div>
+                    <div class="score-big-num">88<span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500;">/100</span></div>
+                </div>
+            </div>
+
+            <!-- Card 2: 24h Predictive Bi-LSTM Trajectory -->
+            <div class="neat-card" style="flex: 0.75;">
+                <div class="neat-card-header">
+                    <h3>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="color: var(--primary-color);"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                        24h Trajectory Forecast
+                    </h3>
+                    <span class="badge badge-blue" style="font-size: 0.62rem; padding: 0.1rem 0.35rem;">Bi-LSTM AI</span>
+                </div>
+                <canvas id="neatTrajectoryCanvas"></canvas>
+                <div style="display: flex; justify-content: space-between; font-size: 0.67rem; color: var(--text-secondary); margin-top: 0.15rem;">
+                    <span>Equilibrium: <strong>Nominal</strong></span>
+                    <span style="color: var(--success-color); font-weight: 600;">98.4% Confidence</span>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<!-- =========================================================================
+     THREE.JS REALISTIC & ACCURATELY ALIGNED HUMAN SKELETON & ANATOMY ENGINE
+     ========================================================================= -->
+<script>
+    const wrapper = document.getElementById('twinCanvasWrapper');
+    const canvas3D = document.getElementById('threeDHumanCanvas');
+    
+    let scene, camera, renderer, twinGroup;
+    let isOrbitActive = true;
+    let isDragging = false, lastMouseX = 0, lastMouseY = 0;
+    let rotVelocityX = 0, rotVelocityY = 0.0009;
+    let targetCameraY = 0, currentCameraY = 0;
+    let targetCameraZ = 5.6, currentCameraZ = 5.6;
+    let heartMesh, lungsMesh, brainMesh, spineGroup, skeletonGroup, vascularGroup, visceralGroup, skinMeshGroup;
+    let organPins = [];
+    let raycaster, mouseNorm;
+    let viewMode = 'anatomy'; // 'anatomy', 'hologram', 'xray'
+
+    // Materials
+    let skinMaterial, boneMaterial, boneJointMaterial, heartMaterial, lungMaterial, brainMaterial, visceralMaterial, vesselArtMaterial, vesselVeinMaterial;
+
+    function init3DHumanTwin() {
+        if (!wrapper || !canvas3D) return;
+
+        const w = wrapper.clientWidth || 450;
+        const h = wrapper.clientHeight || 550;
+
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(36, w / h, 0.1, 1000);
+        
+        renderer = new THREE.WebGLRenderer({
+            canvas: canvas3D,
+            alpha: true,
+            antialias: true,
+            powerPreference: 'high-performance'
+        });
+        renderer.setSize(w, h);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.outputEncoding = THREE.sRGBEncoding;
+
+        setupLighting();
+
+        twinGroup = new THREE.Group();
+        scene.add(twinGroup);
+
+        raycaster = new THREE.Raycaster();
+        mouseNorm = new THREE.Vector2();
+
+        buildAnatomicallyPreciseHumanBody(twinGroup);
+        fitCameraToBody();
+
+        // Smooth Mouse / Touch Orbit Controls
+        wrapper.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+            rotVelocityX = 0;
+            rotVelocityY = 0;
+        });
+
+        window.addEventListener('mouseup', () => isDragging = false);
+
+        wrapper.addEventListener('mousemove', (e) => {
+            const rect = wrapper.getBoundingClientRect();
+            mouseNorm.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+            mouseNorm.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+            if (isDragging) {
+                const deltaX = e.clientX - lastMouseX;
+                const deltaY = e.clientY - lastMouseY;
+                rotVelocityY = deltaX * 0.0055;
+                rotVelocityX = deltaY * 0.0032;
+                twinGroup.rotation.y += rotVelocityY;
+                twinGroup.rotation.x += rotVelocityX;
+                twinGroup.rotation.x = Math.max(-0.35, Math.min(0.35, twinGroup.rotation.x));
+                lastMouseX = e.clientX;
+                lastMouseY = e.clientY;
+            }
+        });
+
+        wrapper.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            targetCameraZ += e.deltaY * 0.004;
+            targetCameraZ = Math.max(2.6, Math.min(8.0, targetCameraZ));
+        }, { passive: false });
+
+        wrapper.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                isDragging = true;
+                lastMouseX = e.touches[0].clientX;
+                lastMouseY = e.touches[0].clientY;
+                rotVelocityX = 0;
+                rotVelocityY = 0;
+            }
+        });
+        window.addEventListener('touchend', () => isDragging = false);
+        wrapper.addEventListener('touchmove', (e) => {
+            if (!isDragging || e.touches.length !== 1) return;
+            const deltaX = e.touches[0].clientX - lastMouseX;
+            const deltaY = e.touches[0].clientY - lastMouseY;
+            rotVelocityY = deltaX * 0.0055;
+            rotVelocityX = deltaY * 0.0032;
+            twinGroup.rotation.y += rotVelocityY;
+            twinGroup.rotation.x += rotVelocityX;
+            twinGroup.rotation.x = Math.max(-0.35, Math.min(0.35, twinGroup.rotation.x));
+            lastMouseX = e.touches[0].clientX;
+            lastMouseY = e.touches[0].clientY;
+        });
+
+        wrapper.addEventListener('click', (e) => {
+            const rect = wrapper.getBoundingClientRect();
+            const clickPos = new THREE.Vector2(
+                ((e.clientX - rect.left) / rect.width) * 2 - 1,
+                -((e.clientY - rect.top) / rect.height) * 2 + 1
+            );
+            raycaster.setFromCamera(clickPos, camera);
+            const pinMeshes = organPins.map(p => p.mesh);
+            const hits = raycaster.intersectObjects(pinMeshes);
+            if (hits.length > 0) {
+                const match = organPins.find(p => p.mesh === hits[0].object);
+                if (match) selectOrganSystem(match.id);
+            }
+        });
+
+        animate3DLoop();
+    }
+
+    function setupLighting() {
+        const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+
+        const ambLight = new THREE.AmbientLight(isDark ? 0x93c5fd : 0xffffff, isDark ? 1.5 : 1.7);
+        scene.add(ambLight);
+
+        const keyLight = new THREE.DirectionalLight(0xffffff, 2.2);
+        keyLight.position.set(4, 6, 5);
+        scene.add(keyLight);
+
+        const fillLight = new THREE.DirectionalLight(0x38bdf8, 1.4);
+        fillLight.position.set(-4, -1, -3);
+        scene.add(fillLight);
+
+        const rimLight = new THREE.PointLight(0x38bdf8, 2.2, 25);
+        rimLight.position.set(0, 3.5, -4);
+        scene.add(rimLight);
+    }
+
+    /* =========================================================================
+       TRUE ANATOMICAL SKELETON, INTERNAL ORGANS & BIO-SHELL BUILDER
+       ========================================================================= */
+    function buildAnatomicallyPreciseHumanBody(group) {
+        skeletonGroup = new THREE.Group();
+        spineGroup = new THREE.Group();
+        skinMeshGroup = new THREE.Group();
+        vascularGroup = new THREE.Group();
+        visceralGroup = new THREE.Group();
+        organPins = [];
+
+        const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+
+        // 1. Materials
+        skinMaterial = new THREE.MeshPhysicalMaterial({
+            color: isDark ? 0x38bdf8 : 0x0284c7,
+            emissive: isDark ? 0x0c4a6e : 0x0369a1,
+            emissiveIntensity: 0.22,
+            roughness: 0.35,
+            metalness: 0.08,
+            transmission: 0.78,
+            thickness: 1.0,
+            transparent: true,
+            opacity: 0.32,
+            depthWrite: false,
+            side: THREE.DoubleSide
+        });
+
+        boneMaterial = new THREE.MeshStandardMaterial({
+            color: 0xf8fafc,
+            emissive: 0x64748b,
+            emissiveIntensity: 0.15,
+            roughness: 0.35,
+            metalness: 0.05
+        });
+
+        boneJointMaterial = new THREE.MeshStandardMaterial({
+            color: 0xe2e8f0,
+            emissive: 0x475569,
+            emissiveIntensity: 0.12,
+            roughness: 0.4
+        });
+
+        // Helper: Bone Generator (Cylinder with rounded anatomical epiphyseal caps)
+        function createBone(p1, p2, radius1, radius2) {
+            const v1 = new THREE.Vector3(p1.x, p1.y, p1.z);
+            const v2 = new THREE.Vector3(p2.x, p2.y, p2.z);
+            const dir = new THREE.Vector3().subVectors(v2, v1);
+            const length = dir.length();
+            const r1 = radius1 || 0.022;
+            const r2 = radius2 || r1;
+
+            const boneGroup = new THREE.Group();
+
+            const cylGeo = new THREE.CylinderGeometry(r2, r1, length, 16);
+            cylGeo.translate(0, length / 2, 0);
+            cylGeo.rotateX(Math.PI / 2);
+
+            const cylMesh = new THREE.Mesh(cylGeo, boneMaterial);
+            cylMesh.lookAt(dir);
+            cylMesh.position.copy(v1);
+            boneGroup.add(cylMesh);
+
+            // Epiphysis head at endpoints
+            const head1 = new THREE.Mesh(new THREE.SphereGeometry(r1 * 1.35, 12, 12), boneJointMaterial);
+            head1.position.copy(v1);
+            boneGroup.add(head1);
+
+            const head2 = new THREE.Mesh(new THREE.SphereGeometry(r2 * 1.35, 12, 12), boneJointMaterial);
+            head2.position.copy(v2);
+            boneGroup.add(head2);
+
+            return boneGroup;
+        }
+
+        // =====================================================================
+        // A. REALISTIC SKULL & MANDIBLE (y: +1.80 to +2.40)
+        // =====================================================================
+        const skullGroup = new THREE.Group();
+
+        // Cranial Vault (Parietal / Occipital / Frontal)
+        const craniumGeo = new THREE.SphereGeometry(0.33, 32, 24);
+        craniumGeo.scale(0.85, 1.05, 0.95);
+        const cranium = new THREE.Mesh(craniumGeo, boneMaterial);
+        cranium.position.set(0, 2.18, -0.02);
+        skullGroup.add(cranium);
+
+        // Facial Skeleton (Eye Orbits & Nasal Bridge)
+        const faceGeo = new THREE.BoxGeometry(0.28, 0.22, 0.18);
+        const faceMesh = new THREE.Mesh(faceGeo, boneMaterial);
+        faceMesh.position.set(0, 2.05, 0.15);
+        skullGroup.add(faceMesh);
+
+        // Bilateral Eye Orbits (Depressed cavities)
+        const eyeOrbitMat = new THREE.MeshBasicMaterial({ color: isDark ? 0x020617 : 0x1e293b });
+        const leftOrbit = new THREE.Mesh(new THREE.CircleGeometry(0.055, 16), eyeOrbitMat);
+        leftOrbit.position.set(-0.09, 2.12, 0.245);
+        skullGroup.add(leftOrbit);
+
+        const rightOrbit = new THREE.Mesh(new THREE.CircleGeometry(0.055, 16), eyeOrbitMat);
+        rightOrbit.position.set(0.09, 2.12, 0.245);
+        skullGroup.add(rightOrbit);
+
+        // Piriform Nasal Aperture
+        const nasalAperture = new THREE.Mesh(new THREE.ConeGeometry(0.035, 0.08, 12), eyeOrbitMat);
+        nasalAperture.position.set(0, 2.02, 0.242);
+        nasalAperture.rotation.x = Math.PI;
+        skullGroup.add(nasalAperture);
+
+        // Realistic Mandible (Jawbone curving from ear to chin)
+        const mandibleCurve = new THREE.CatmullRomCurve3([
+            new THREE.Vector3(-0.18, 2.08, 0.00), // Left TMJ joint
+            new THREE.Vector3(-0.16, 1.94, 0.10), // Angle of mandible
+            new THREE.Vector3(-0.09, 1.86, 0.19),
+            new THREE.Vector3(0, 1.84, 0.22),     // Mental protuberance (Chin)
+            new THREE.Vector3(0.09, 1.86, 0.19),
+            new THREE.Vector3(0.16, 1.94, 0.10),  // Angle of mandible
+            new THREE.Vector3(0.18, 2.08, 0.00)  // Right TMJ joint
+        ]);
+        const mandibleMesh = new THREE.Mesh(new THREE.TubeGeometry(mandibleCurve, 24, 0.045, 10, false), boneMaterial);
+        skullGroup.add(mandibleMesh);
+
+        skeletonGroup.add(skullGroup);
+
+        // =====================================================================
+        // B. TRUE VERTEBRAL COLUMN (Spine C1 to Coccyx with S-Curve)
+        // =====================================================================
+        const spinalCurve = new THREE.CatmullRomCurve3([
+            new THREE.Vector3(0, 1.82, -0.02), // C1 Atlas (Neck base of skull)
+            new THREE.Vector3(0, 1.68, -0.05), // C7 Vertebra prominens
+            new THREE.Vector3(0, 1.50, -0.07), // T3 Upper thoracic
+            new THREE.Vector3(0, 1.25, -0.08), // T8 Mid thoracic kyphosis peak
+            new THREE.Vector3(0, 0.95, -0.05), // T12 Thoracolumbar junction
+            new THREE.Vector3(0, 0.65, -0.03), // L3 Lumbar lordosis peak
+            new THREE.Vector3(0, 0.35, -0.05), // L5 Lumbosacral angle
+            new THREE.Vector3(0, 0.10, -0.08), // S1 Sacrum top
+            new THREE.Vector3(0, -0.15, -0.09),// Sacrum apex / Coccyx
+            new THREE.Vector3(0, -0.22, -0.07) // Coccyx tip
+        ]);
+
+        const spinalCord = new THREE.Mesh(new THREE.TubeGeometry(spinalCurve, 40, 0.020, 10, false), boneJointMaterial);
+        spineGroup.add(spinalCord);
+
+        // 24 Vertebrae + Discs
+        for (let v = 0; v < 22; v++) {
+            const t = v / 21;
+            const pt = spinalCurve.getPoint(t);
+            const vScale = 0.065 + (v > 10 ? (v - 10) * 0.003 : 0);
+            
+            // Vertebral Body
+            const discGeo = new THREE.CylinderGeometry(vScale * 1.1, vScale * 1.1, 0.022, 16);
+            const disc = new THREE.Mesh(discGeo, boneMaterial);
+            disc.position.copy(pt);
+            spineGroup.add(disc);
+
+            // Spinous process pointing backwards
+            const spinous = new THREE.Mesh(new THREE.BoxGeometry(0.016, 0.016, 0.045), boneMaterial);
+            spinous.position.set(pt.x, pt.y, pt.z - 0.04);
+            spineGroup.add(spinous);
+        }
+
+        skeletonGroup.add(spineGroup);
+
+        // =====================================================================
+        // C. THORACIC RIB CAGE, STERNUM & CLAVICLES
+        // =====================================================================
+        const thoraxGroup = new THREE.Group();
+
+        // Sternum (Manubrium + Body + Xiphoid Process at anterior midline)
+        const sternumCurve = new THREE.CatmullRomCurve3([
+            new THREE.Vector3(0, 1.50, 0.19), // Jugular notch
+            new THREE.Vector3(0, 1.40, 0.21), // Sternal angle of Louis
+            new THREE.Vector3(0, 1.25, 0.20), // Gladiolus body
+            new THREE.Vector3(0, 1.10, 0.17)  // Xiphoid process
+        ]);
+        const sternumMesh = new THREE.Mesh(new THREE.TubeGeometry(sternumCurve, 16, 0.032, 10, false), boneMaterial);
+        thoraxGroup.add(sternumMesh);
+
+        // Clavicles (S-curved collarbones)
+        function createClavicle(sign) {
+            const curve = new THREE.CatmullRomCurve3([
+                new THREE.Vector3(0, 1.50, 0.18),
+                new THREE.Vector3(sign * 0.18, 1.52, 0.14),
+                new THREE.Vector3(sign * 0.38, 1.48, 0.08),
+                new THREE.Vector3(sign * 0.46, 1.46, 0.02) // Acromion process (Shoulder)
+            ]);
+            return new THREE.Mesh(new THREE.TubeGeometry(curve, 16, 0.018, 10, false), boneMaterial);
+        }
+        thoraxGroup.add(createClavicle(-1));
+        thoraxGroup.add(createClavicle(1));
+
+        // Scapulae (Shoulder Blade triangular plates at back)
+        function createScapula(sign) {
+            const scGeo = new THREE.BoxGeometry(0.16, 0.24, 0.02);
+            const scMesh = new THREE.Mesh(scGeo, boneMaterial);
+            scMesh.position.set(sign * 0.26, 1.32, -0.12);
+            scMesh.rotation.y = sign * 0.25;
+            scMesh.rotation.z = sign * -0.15;
+            return scMesh;
+        }
+        thoraxGroup.add(createScapula(-1));
+        thoraxGroup.add(createScapula(1));
+
+        // 10 Pairs of Anatomical Ribs (Wrapping from thoracic spine to sternum)
+        for (let r = 0; r < 10; r++) {
+            const yLevel = 1.46 - r * 0.052;
+            const ribWidth = 0.38 - (r > 6 ? (r - 6) * 0.025 : 0);
+            const ribDepth = 0.27 - (r > 6 ? (r - 6) * 0.020 : 0);
+
+            function createRibPair(sign) {
+                const ribCurve = new THREE.CatmullRomCurve3([
+                    new THREE.Vector3(0, yLevel + 0.02, -0.07), // Spine costovertebral joint
+                    new THREE.Vector3(sign * ribWidth * 0.75, yLevel + 0.01, -0.06), // Posterior angle
+                    new THREE.Vector3(sign * ribWidth, yLevel - 0.02, 0.04), // Mid-axillary curve
+                    new THREE.Vector3(sign * ribWidth * 0.65, yLevel - 0.04, 0.16), // Anterior costal
+                    new THREE.Vector3(sign * 0.04, yLevel - 0.05, 0.19) // Meeting sternum
+                ]);
+                return new THREE.Mesh(new THREE.TubeGeometry(ribCurve, 18, 0.013, 8, false), boneMaterial);
+            }
+            thoraxGroup.add(createRibPair(-1));
+            thoraxGroup.add(createRibPair(1));
+        }
+
+        skeletonGroup.add(thoraxGroup);
+
+        // =====================================================================
+        // D. PELVIC GIRDLE (Sacrum, Iliac Crests, Pubis, Ischium & Hip Sockets)
+        // =====================================================================
+        const pelvisGroup = new THREE.Group();
+
+        // Sacrum / Coccyx Plate
+        const sacrumGeo = new THREE.ConeGeometry(0.14, 0.28, 16);
+        const sacrum = new THREE.Mesh(sacrumGeo, boneMaterial);
+        sacrum.rotation.x = Math.PI;
+        sacrum.position.set(0, -0.04, -0.08);
+        pelvisGroup.add(sacrum);
+
+        // Iliac Crest Wings (Left & Right)
+        function createIlium(sign) {
+            const iliumCurve = new THREE.CatmullRomCurve3([
+                new THREE.Vector3(sign * 0.06, 0.08, -0.07), // Posterior superior iliac spine
+                new THREE.Vector3(sign * 0.28, 0.12, 0.00),  // Iliac crest peak
+                new THREE.Vector3(sign * 0.32, -0.02, 0.06), // Anterior superior iliac spine
+                new THREE.Vector3(sign * 0.26, -0.12, 0.02), // Acetabulum (Hip Socket)
+                new THREE.Vector3(sign * 0.16, -0.18, 0.04), // Pubic ramus
+                new THREE.Vector3(0, -0.19, 0.10)            // Pubic symphysis
+            ]);
+            const iliumMesh = new THREE.Mesh(new THREE.TubeGeometry(iliumCurve, 24, 0.028, 10, false), boneMaterial);
+
+            // Iliac fossa blade
+            const fossaGeo = new THREE.SphereGeometry(0.18, 16, 12, 0, Math.PI);
+            fossaGeo.scale(0.8, 0.6, 0.3);
+            const fossa = new THREE.Mesh(fossaGeo, boneMaterial);
+            fossa.position.set(sign * 0.20, 0.02, 0.01);
+            fossa.rotation.y = sign * 0.4;
+            fossa.rotation.z = sign * -0.2;
+            iliumMesh.add(fossa);
+
+            return iliumMesh;
+        }
+        pelvisGroup.add(createIlium(-1));
+        pelvisGroup.add(createIlium(1));
+
+        skeletonGroup.add(pelvisGroup);
+
+        // =====================================================================
+        // E. UPPER LIMBS (Humerus, Radius, Ulna, Carpal & Metacarpal Hand Bones)
+        // =====================================================================
+        function createArmSkeleton(sign) {
+            const arm = new THREE.Group();
+
+            // Shoulder Joint: (sign * 0.46, 1.46, 0.02)
+            // Elbow Joint:    (sign * 0.62, 0.86, 0.04)
+            // Wrist Joint:    (sign * 0.74, 0.26, 0.06)
+
+            const shoulderPt = { x: sign * 0.46, y: 1.46, z: 0.02 };
+            const elbowPt    = { x: sign * 0.62, y: 0.86, z: 0.04 };
+            const wristPt    = { x: sign * 0.74, y: 0.26, z: 0.06 };
+
+            // Humerus
+            arm.add(createBone(shoulderPt, elbowPt, 0.028, 0.024));
+
+            // Radius (Lateral) & Ulna (Medial) Forearm Bones
+            const radOffset = sign * 0.018;
+            arm.add(createBone(
+                { x: elbowPt.x + radOffset, y: elbowPt.y, z: elbowPt.z + 0.01 },
+                { x: wristPt.x + radOffset, y: wristPt.y, z: wristPt.z + 0.01 },
+                0.018, 0.015
+            ));
+            arm.add(createBone(
+                { x: elbowPt.x - radOffset, y: elbowPt.y, z: elbowPt.z - 0.01 },
+                { x: wristPt.x - radOffset, y: wristPt.y, z: wristPt.z - 0.01 },
+                0.018, 0.015
+            ));
+
+            // Hand: Carpal wrist + 5 articulated Metacarpal / Finger Rays
+            const handBase = { x: wristPt.x, y: wristPt.y - 0.04, z: wristPt.z };
+            const fingerAngles = [-0.35, -0.12, 0.02, 0.16, 0.32];
+            const fingerLengths = [0.10, 0.15, 0.17, 0.15, 0.12];
+
+            for (let f = 0; f < 5; f++) {
+                const angle = fingerAngles[f];
+                const tipPt = {
+                    x: handBase.x + Math.sin(angle) * sign * fingerLengths[f],
+                    y: handBase.y - Math.cos(angle) * fingerLengths[f],
+                    z: handBase.z + (f === 0 ? 0.02 : (f - 2) * 0.008)
+                };
+                arm.add(createBone(handBase, tipPt, 0.010, 0.006));
+            }
+
+            return arm;
+        }
+
+        skeletonGroup.add(createArmSkeleton(-1));
+        skeletonGroup.add(createArmSkeleton(1));
+
+        // =====================================================================
+        // F. LOWER LIMBS (Femur, Patella, Tibia, Fibula, Ankle & Foot Bones)
+        // =====================================================================
+        function createLegSkeleton(sign) {
+            const leg = new THREE.Group();
+
+            // Hip Acetabulum: (sign * 0.26, -0.12, 0.02)
+            // Knee Joint:     (sign * 0.24, -1.15, 0.01)
+            // Ankle Joint:    (sign * 0.24, -2.10, -0.01)
+
+            const hipPt   = { x: sign * 0.26, y: -0.12, z: 0.02 };
+            const kneePt  = { x: sign * 0.24, y: -1.15, z: 0.01 };
+            const anklePt = { x: sign * 0.24, y: -2.10, z: -0.01 };
+
+            // Femur (Thigh Bone with natural slight medial inclination)
+            leg.add(createBone(hipPt, kneePt, 0.038, 0.034));
+
+            // Patella (Kneecap)
+            const patellaGeo = new THREE.SphereGeometry(0.042, 14, 12);
+            patellaGeo.scale(1.0, 1.2, 0.6);
+            const patella = new THREE.Mesh(patellaGeo, boneMaterial);
+            patella.position.set(kneePt.x, kneePt.y, kneePt.z + 0.06);
+            leg.add(patella);
+
+            // Tibia (Large Shin Bone) & Fibula (Slender Lateral Bone)
+            leg.add(createBone(
+                { x: kneePt.x, y: kneePt.y, z: kneePt.z },
+                { x: anklePt.x, y: anklePt.y, z: anklePt.z },
+                0.032, 0.024
+            ));
+
+            const fibOffset = sign * 0.038;
+            leg.add(createBone(
+                { x: kneePt.x + fibOffset, y: kneePt.y - 0.05, z: kneePt.z - 0.01 },
+                { x: anklePt.x + fibOffset, y: anklePt.y + 0.05, z: anklePt.z - 0.01 },
+                0.015, 0.012
+            ));
+
+            // Foot Skeleton: Calcaneus heel + Talus + 5 Metatarsals extending forward
+            const heelPt = { x: anklePt.x, y: anklePt.y - 0.06, z: anklePt.z - 0.08 };
+            const archPt = { x: anklePt.x, y: anklePt.y - 0.08, z: anklePt.z + 0.06 };
+            leg.add(createBone(anklePt, heelPt, 0.026, 0.030));
+            leg.add(createBone(heelPt, archPt, 0.028, 0.022));
+
+            // 5 Toe Rays
+            for (let t = 0; t < 5; t++) {
+                const toeX = archPt.x + (t - 2) * sign * 0.018;
+                const toePt = { x: toeX, y: archPt.y - 0.03, z: archPt.z + 0.16 - Math.abs(t - 1) * 0.015 };
+                leg.add(createBone(archPt, toePt, 0.010, 0.007));
+            }
+
+            return leg;
+        }
+
+        skeletonGroup.add(createLegSkeleton(-1));
+        skeletonGroup.add(createLegSkeleton(1));
+
+        group.add(skeletonGroup);
+
+        // =====================================================================
+        // G. ACCURATELY POSITIONED INTERNAL ORGANS
+        // =====================================================================
+
+        // 1. Brain & Synapses (Inside Skull Cranial Cavity: y = 2.18, z = 0.01)
+        const brainGroup = new THREE.Group();
+        brainMaterial = new THREE.MeshStandardMaterial({
+            color: 0x10b981,
+            emissive: 0x059669,
+            emissiveIntensity: 0.85,
+            roughness: 0.3
+        });
+
+        const hemiGeo = new THREE.SphereGeometry(0.18, 24, 20);
+        hemiGeo.scale(0.80, 0.90, 1.10);
+        const lHemi = new THREE.Mesh(hemiGeo, brainMaterial);
+        lHemi.position.set(-0.08, 2.22, 0.01);
+        brainGroup.add(lHemi);
+
+        const rHemi = new THREE.Mesh(hemiGeo, brainMaterial);
+        rHemi.position.set(0.08, 2.22, 0.01);
+        brainGroup.add(rHemi);
+
+        // Cerebellum
+        const cerebellum = new THREE.Mesh(new THREE.SphereGeometry(0.10, 16, 14), brainMaterial);
+        cerebellum.scale.set(1.1, 0.7, 0.8);
+        cerebellum.position.set(0, 2.06, -0.09);
+        brainGroup.add(cerebellum);
+
+        brainMesh = brainGroup;
+        group.add(brainMesh);
+
+        // 2. Beating Heart (Under Left Ribcage: x = -0.07, y = 1.25, z = 0.06)
+        const heartGroup = new THREE.Group();
+        heartMaterial = new THREE.MeshStandardMaterial({
+            color: 0xef4444,
+            emissive: 0xdc2626,
+            emissiveIntensity: 1.0,
+            roughness: 0.35
+        });
+
+        const heartGeo = new THREE.SphereGeometry(0.15, 24, 20);
+        heartGeo.scale(0.88, 1.22, 0.84);
+        const heartBody = new THREE.Mesh(heartGeo, heartMaterial);
+        heartGroup.add(heartBody);
+
+        // Aorta Arch (Arching over left pulmonary trunk)
+        const aortaCurve = new THREE.CatmullRomCurve3([
+            new THREE.Vector3(0, 0.08, 0),
+            new THREE.Vector3(0.03, 0.22, 0.02),
+            new THREE.Vector3(0.00, 0.28, 0.00),
+            new THREE.Vector3(-0.05, 0.20, -0.04),
+            new THREE.Vector3(-0.04, -0.02, -0.05)
+        ]);
+        const aorta = new THREE.Mesh(new THREE.TubeGeometry(aortaCurve, 16, 0.026, 10, false), heartMaterial);
+        heartGroup.add(aorta);
+
+        heartGroup.position.set(-0.07, 1.25, 0.06);
+        heartGroup.rotation.z = -0.12;
+        heartMesh = heartGroup;
+        group.add(heartMesh);
+
+        // 3. Bilateral Lungs & Tracheobronchial Tree (Flanking Heart: y = 1.26)
+        const lungsGroup = new THREE.Group();
+        lungMaterial = new THREE.MeshStandardMaterial({
+            color: 0x0ea5e9,
+            emissive: 0x0284c7,
+            emissiveIntensity: 0.70,
+            roughness: 0.4
+        });
+
+        const leftLungGeo = new THREE.SphereGeometry(0.17, 22, 18);
+        leftLungGeo.scale(0.70, 1.32, 0.65);
+        const lLung = new THREE.Mesh(leftLungGeo, lungMaterial);
+        lLung.position.set(-0.21, 1.26, 0.04);
+        lungsGroup.add(lLung);
+
+        const rightLungGeo = new THREE.SphereGeometry(0.19, 22, 18);
+        rightLungGeo.scale(0.76, 1.32, 0.68);
+        const rLung = new THREE.Mesh(rightLungGeo, lungMaterial);
+        rLung.position.set(0.21, 1.26, 0.04);
+        lungsGroup.add(rLung);
+
+        // Trachea & Main Bronchi
+        const trachea = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 0.28, 12), boneMaterial);
+        trachea.position.set(0, 1.54, 0.04);
+        lungsGroup.add(trachea);
+
+        lungsMesh = lungsGroup;
+        group.add(lungsMesh);
+
+        // 4. Visceral Organs (Liver, Stomach, Kidneys: y = 0.45 to 0.75)
+        visceralMaterial = new THREE.MeshStandardMaterial({ color: 0xf59e0b, emissive: 0xb45309, emissiveIntensity: 0.80 });
+
+        // Liver (Right Upper Quadrant directly under diaphragm)
+        const liver = new THREE.Mesh(new THREE.SphereGeometry(0.16, 20, 16), visceralMaterial);
+        liver.scale.set(1.30, 0.65, 0.85);
+        liver.position.set(0.13, 0.68, 0.06);
+        visceralGroup.add(liver);
+
+        // Stomach (Left Upper Quadrant)
+        const stomach = new THREE.Mesh(new THREE.SphereGeometry(0.12, 18, 14), new THREE.MeshStandardMaterial({ color: 0x10b981, emissive: 0x059669, emissiveIntensity: 0.65 }));
+        stomach.scale.set(1.10, 0.75, 0.90);
+        stomach.position.set(-0.12, 0.65, 0.05);
+        visceralGroup.add(stomach);
+
+        // Bilateral Kidneys (Flanking Lumbar Spine)
+        const kidneyGeo = new THREE.SphereGeometry(0.075, 16, 12);
+        kidneyGeo.scale(0.70, 1.20, 0.80);
+        const kidneyMat = new THREE.MeshStandardMaterial({ color: 0xa855f7, emissive: 0x7e22ce, emissiveIntensity: 0.75 });
+
+        const lKidney = new THREE.Mesh(kidneyGeo, kidneyMat);
+        lKidney.position.set(-0.16, 0.48, -0.06);
+        visceralGroup.add(lKidney);
+
+        const rKidney = new THREE.Mesh(kidneyGeo, kidneyMat);
+        rKidney.position.set(0.16, 0.48, -0.06);
+        visceralGroup.add(rKidney);
+
+        group.add(visceralGroup);
+
+        // 5. Vascular Tree (Aorta & Vena Cava)
+        vesselArtMaterial = new THREE.MeshBasicMaterial({ color: 0xef4444 });
+        vesselVeinMaterial = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+
+        const aortaStem = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.013, 1.05, 10), vesselArtMaterial);
+        aortaStem.position.set(0.02, 0.65, 0.01);
+        vascularGroup.add(aortaStem);
+
+        const venaCava = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.012, 1.05, 10), vesselVeinMaterial);
+        venaCava.position.set(-0.02, 0.65, 0.01);
+        vascularGroup.add(venaCava);
+
+        group.add(vascularGroup);
+
+        // =====================================================================
+        // H. UNIFIED ANATOMICALLY CONTOURED TRANSLUCENT BIO-SHELL
+        // =====================================================================
+        const torsoRings = [
+            // Pelvis / Hips
+            { y: -0.25, rx: 0.40, rz: 0.28, zOff: 0.00 },
+            { y: -0.10, rx: 0.42, rz: 0.29, zOff: 0.01 },
+            { y:  0.08, rx: 0.39, rz: 0.27, zOff: 0.01 },
+            // Waist
+            { y:  0.28, rx: 0.35, rz: 0.24, zOff: 0.00 },
+            { y:  0.52, rx: 0.38, rz: 0.25, zOff: 0.00 },
+            // Lower Ribs
+            { y:  0.78, rx: 0.44, rz: 0.27, zOff: 0.00 },
+            // Mid Chest
+            { y:  1.02, rx: 0.48, rz: 0.30, zOff: 0.01 },
+            // Pectorals
+            { y:  1.26, rx: 0.52, rz: 0.32, zOff: 0.02 },
+            // Upper Chest / Clavicle
+            { y:  1.46, rx: 0.52, rz: 0.28, zOff: 0.01 },
+            // Shoulders
+            { y:  1.58, rx: 0.46, rz: 0.22, zOff: 0.00 },
+            // Neck base
+            { y:  1.68, rx: 0.26, rz: 0.18, zOff: -0.01 },
+            // Mid Neck
+            { y:  1.80, rx: 0.17, rz: 0.16, zOff: 0.00 },
+            // Throat / Chin
+            { y:  1.92, rx: 0.18, rz: 0.18, zOff: 0.02 }
+        ];
+
+        const segs = 48;
+        const torsoPos = [];
+        const torsoIdx = [];
+
+        for (let r = 0; r < torsoRings.length; r++) {
+            const ring = torsoRings[r];
+            for (let s = 0; s < segs; s++) {
+                const theta = (s / segs) * Math.PI * 2;
+                let rx = ring.rx;
+                let rz = ring.rz;
+
+                // Natural pectoral contouring
+                if (ring.y >= 1.10 && ring.y <= 1.40 && Math.sin(theta) > 0.3) {
+                    rz += Math.pow(Math.sin(theta), 2.2) * 0.035;
+                }
+
+                const x = Math.cos(theta) * rx;
+                const z = Math.sin(theta) * rz + ring.zOff;
+                const y = ring.y;
+                torsoPos.push(x, y, z);
+            }
+        }
+
+        for (let r = 0; r < torsoRings.length - 1; r++) {
+            for (let s = 0; s < segs; s++) {
+                const nextS = (s + 1) % segs;
+                const i0 = r * segs + s;
+                const i1 = r * segs + nextS;
+                const i2 = (r + 1) * segs + s;
+                const i3 = (r + 1) * segs + nextS;
+                torsoIdx.push(i0, i2, i1);
+                torsoIdx.push(i1, i2, i3);
+            }
+        }
+
+        const torsoGeo = new THREE.BufferGeometry();
+        torsoGeo.setAttribute('position', new THREE.Float32BufferAttribute(torsoPos, 3));
+        torsoGeo.setIndex(torsoIdx);
+        torsoGeo.computeVertexNormals();
+        skinMeshGroup.add(new THREE.Mesh(torsoGeo, skinMaterial));
+
+        // Head Shell
+        const headShellGeo = new THREE.SphereGeometry(0.36, 36, 28);
+        headShellGeo.scale(0.85, 1.05, 0.95);
+        const headShell = new THREE.Mesh(headShellGeo, skinMaterial);
+        headShell.position.set(0, 2.18, -0.01);
+        skinMeshGroup.add(headShell);
+
+        // Limbs Shell
+        function createLimbShell(crossSections) {
+            const pos = [];
+            const idx = [];
+            const segments = 28;
+
+            for (let r = 0; r < crossSections.length; r++) {
+                const cs = crossSections[r];
+                for (let s = 0; s < segments; s++) {
+                    const theta = (s / segments) * Math.PI * 2;
+                    pos.push(cs.x + Math.cos(theta) * cs.rx, cs.y, cs.z + Math.sin(theta) * cs.rz);
+                }
+            }
+
+            for (let r = 0; r < crossSections.length - 1; r++) {
+                for (let s = 0; s < segments; s++) {
+                    const nextS = (s + 1) % segments;
+                    const i0 = r * segments + s;
+                    const i1 = r * segments + nextS;
+                    const i2 = (r + 1) * segments + s;
+                    const i3 = (r + 1) * segments + nextS;
+                    idx.push(i0, i2, i1);
+                    idx.push(i1, i2, i3);
+                }
+            }
+
+            const geo = new THREE.BufferGeometry();
+            geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+            geo.setIndex(idx);
+            geo.computeVertexNormals();
+            return new THREE.Mesh(geo, skinMaterial);
+        }
+
+        // Leg Skin Shells (Accurately aligned with Femur/Tibia)
+        function getLegRings(sign) {
+            return [
+                { y: -0.22, x: sign * 0.26, z: 0.02, rx: 0.19, rz: 0.19 },
+                { y: -0.55, x: sign * 0.25, z: 0.02, rx: 0.17, rz: 0.17 },
+                { y: -0.90, x: sign * 0.24, z: 0.01, rx: 0.14, rz: 0.14 },
+                { y: -1.15, x: sign * 0.24, z: 0.02, rx: 0.12, rz: 0.13 }, // Knee
+                { y: -1.50, x: sign * 0.24, z: -0.01, rx: 0.12, rz: 0.11 },// Calf
+                { y: -1.90, x: sign * 0.24, z: 0.00, rx: 0.08, rz: 0.08 }, // Ankle
+                { y: -2.18, x: sign * 0.24, z: 0.07, rx: 0.07, rz: 0.16 }  // Foot
+            ];
+        }
+        skinMeshGroup.add(createLimbShell(getLegRings(-1)));
+        skinMeshGroup.add(createLimbShell(getLegRings(1)));
+
+        // Arm Skin Shells (Accurately aligned with Humerus/Radius)
+        function getArmRings(sign) {
+            return [
+                { y: 1.48, x: sign * 0.52, z: 0.01, rx: 0.12, rz: 0.12 }, // Shoulder
+                { y: 1.20, x: sign * 0.58, z: 0.02, rx: 0.10, rz: 0.10 }, // Bicep
+                { y: 0.86, x: sign * 0.62, z: 0.04, rx: 0.08, rz: 0.08 }, // Elbow
+                { y: 0.55, x: sign * 0.68, z: 0.05, rx: 0.07, rz: 0.07 }, // Forearm
+                { y: 0.26, x: sign * 0.74, z: 0.06, rx: 0.05, rz: 0.06 }, // Wrist
+                { y: 0.10, x: sign * 0.77, z: 0.06, rx: 0.03, rz: 0.05 }  // Hand
+            ];
+        }
+        skinMeshGroup.add(createLimbShell(getArmRings(-1)));
+        skinMeshGroup.add(createLimbShell(getArmRings(1)));
+
+        group.add(skinMeshGroup);
+
+        // Interactive Hotspot Pins
+        createPin('heart', -0.07, 1.25, 0.22, 0xef4444);
+        createPin('brain', 0, 2.20, 0.22, 0x10b981);
+        createPin('lungs', 0.21, 1.26, 0.22, 0x0284c7);
+        createPin('metabolism', 0.13, 0.68, 0.20, 0xf59e0b);
+        createPin('spine', 0, 0.95, -0.16, 0x8b5cf6);
+    }
+
+    function createPin(id, x, y, z, color) {
+        const pinMesh = new THREE.Mesh(
+            new THREE.SphereGeometry(0.042, 16, 16),
+            new THREE.MeshBasicMaterial({ color: color })
+        );
+        pinMesh.position.set(x, y, z);
+        twinGroup.add(pinMesh);
+
+        const ringMesh = new THREE.Mesh(
+            new THREE.RingGeometry(0.060, 0.082, 16),
+            new THREE.MeshBasicMaterial({ color: color, side: THREE.DoubleSide, transparent: true, opacity: 0.8 })
+        );
+        ringMesh.position.copy(pinMesh.position);
+        twinGroup.add(ringMesh);
+
+        organPins.push({ id, mesh: pinMesh, ring: ringMesh });
+    }
+
+    function fitCameraToBody() {
+        if (!wrapper || !camera || !renderer) return;
+        const w = wrapper.clientWidth;
+        const h = wrapper.clientHeight;
+        if (w === 0 || h === 0) return;
+
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        renderer.setSize(w, h);
+
+        const vFov = camera.fov * (Math.PI / 180);
+        const dist = (5.0 / 2) / Math.tan(vFov / 2) * 1.10;
+        targetCameraZ = dist;
+        camera.position.set(0, 0, dist);
+        camera.lookAt(0, 0, 0);
+    }
+
+    /* =========================================================================
+       SMOOTH 60FPS ANIMATION LOOP
+       ========================================================================= */
+    let clock = 0;
+    function animate3DLoop() {
+        requestAnimationFrame(animate3DLoop);
+        clock += 0.010;
+
+        // Smooth Orbiting
+        if (!isDragging) {
+            if (isOrbitActive) {
+                rotVelocityY = rotVelocityY * 0.95 + 0.0008 * 0.05;
+            } else {
+                rotVelocityY *= 0.90;
+            }
+            rotVelocityX *= 0.88;
+            twinGroup.rotation.y += rotVelocityY;
+            twinGroup.rotation.x += rotVelocityX;
+        }
+
+        // Camera Smooth Interpolation
+        if (camera) {
+            currentCameraZ += (targetCameraZ - currentCameraZ) * 0.06;
+            currentCameraY += (targetCameraY - currentCameraY) * 0.06;
+            camera.position.z = currentCameraZ;
+            camera.position.y = currentCameraY;
+        }
+
+        // Realistic Cardiac Systole / Diastole Pulse
+        if (heartMesh) {
+            const hCycle = Math.sin(clock * 2.4);
+            let s = 1.0;
+            if (hCycle > 0.3) {
+                s = 1.0 + Math.pow(hCycle, 2.5) * 0.14;
+            }
+            heartMesh.scale.set(s, s * 1.03, s * 0.97);
+        }
+
+        // Deep Natural Respiration
+        if (lungsMesh) {
+            const lScale = 1.0 + Math.sin(clock * 0.75) * 0.05;
+            lungsMesh.scale.set(lScale, lScale * 1.02, lScale * 1.03);
+        }
+
+        // Synaptic Brain Activity
+        if (brainMesh) {
+            const glow = 0.65 + Math.sin(clock * 1.5) * 0.25;
+            brainMesh.children.forEach(c => {
+                if (c.material) c.material.emissiveIntensity = glow;
+            });
+        }
+
+        // Pin Glow Oscillation
+        for (let p of organPins) {
+            const sc = 1.0 + Math.sin(clock * 2.0 + p.mesh.position.y) * 0.15;
+            p.ring.scale.set(sc, sc, 1);
+        }
+
+        renderer.render(scene, camera);
+    }
+
+    /* =========================================================================
+       INTERACTION & ORGAN FOCUS
+       ========================================================================= */
+    function toggleTwinOrbit() {
+        isOrbitActive = !isOrbitActive;
+        const btn = document.getElementById('btnOrbitToggle');
+        const txt = document.getElementById('orbitTxt');
+        txt.innerText = isOrbitActive ? 'Orbit: Active' : 'Orbit: Paused';
+        btn.classList.toggle('active', isOrbitActive);
+    }
+
+    function resetTwinCamera() {
+        twinGroup.rotation.set(0, 0, 0);
+        rotVelocityX = 0;
+        rotVelocityY = 0.0008;
+        targetCameraY = 0;
+        fitCameraToBody();
+        selectOrganSystem('all');
+    }
+
+    function toggleViewMode() {
+        const modes = ['anatomy', 'hologram', 'xray'];
+        const nextIdx = (modes.indexOf(viewMode) + 1) % modes.length;
+        viewMode = modes[nextIdx];
+        
+        const txt = document.getElementById('viewModeTxt');
+        if (viewMode === 'anatomy') {
+            txt.innerText = 'Mode: Anatomy';
+            skinMaterial.opacity = 0.32;
+            skinMaterial.wireframe = false;
+        } else if (viewMode === 'hologram') {
+            txt.innerText = 'Mode: Hologram';
+            skinMaterial.opacity = 0.18;
+            skinMaterial.wireframe = true;
+        } else {
+            txt.innerText = 'Mode: Skeletal';
+            skinMaterial.opacity = 0.05;
+            skinMaterial.wireframe = false;
+        }
+    }
+
+    function togglePulseRate() {
+        const txt = document.getElementById('pulseRateTxt');
+        txt.innerText = txt.innerText.includes('74') ? 'Pulse: 68 BPM' : 'Pulse: 74 BPM';
+    }
+
+    function selectOrganSystem(organId, pill) {
+        document.querySelectorAll('.filter-tab-pill').forEach(p => p.classList.remove('active'));
+        if (pill) {
+            pill.classList.add('active');
+        } else {
+            const match = Array.from(document.querySelectorAll('.filter-tab-pill')).find(b => b.getAttribute('onclick')?.includes(organId));
+            if (match) match.classList.add('active');
+        }
+
+        const titleEl = document.getElementById('inspTitle');
+        const descEl = document.getElementById('inspDesc');
+        const p1El = document.getElementById('inspP1');
+        const p2El = document.getElementById('inspP2');
+
+        const telemetry = {
+            'heart': {
+                title: '❤️ Cardiovascular System',
+                desc: 'Resting Heart Rate 74 BPM &bull; BP 122/80 mmHg &bull; Cardiac Output 4.9 L/min. Coronary perfusion optimal with zero ischemic indicators.',
+                p1: 'HRV: 68 ms (Low Stress)',
+                p2: 'Risk: 1.2% (Low)',
+                camY: 1.25,
+                zoom: 0.65,
+                skinOpacity: 0.16
+            },
+            'brain': {
+                title: '🧠 Neurological System',
+                desc: 'EEG Alpha rhythm 10.4 Hz &bull; Parasympathetic tone balanced. Cognitive load index normal with zero neuro-fatigue anomalies detected.',
+                p1: 'Cognitive: 92/100',
+                p2: 'Synapse: Nominal',
+                camY: 2.18,
+                zoom: 0.55,
+                skinOpacity: 0.12
+            },
+            'lungs': {
+                title: '🫁 Pulmonary / Respiratory',
+                desc: 'SpO2 98.5% &bull; Respiratory Rate 15 br/min &bull; Tidal Volume 510 mL. Bronchial compliance clear bilaterally with optimal gas exchange.',
+                p1: 'O2 Saturation: 98.5%',
+                p2: 'Airway: Clear',
+                camY: 1.26,
+                zoom: 0.68,
+                skinOpacity: 0.16
+            },
+            'spine': {
+                title: '🦴 Musculoskeletal & Skeletal Frame',
+                desc: 'Vertebral column S-curvature aligned &bull; Intervertebral discs intact. Ribcage, thoracic cage & bone mineral density within normal T-score.',
+                p1: 'Bone Density: T 1.2',
+                p2: 'Alignment: Optimal',
+                camY: 0.90,
+                zoom: 0.85,
+                skinOpacity: 0.10
+            },
+            'metabolism': {
+                title: '⚡ Metabolic & Visceral System',
+                desc: 'Fasting Blood Glucose 94 mg/dL &bull; HbA1c 5.4% &bull; Hepatic lipid clearance stable. Bilateral renal filtration eGFR >90 mL/min.',
+                p1: 'Glucose: 94 mg/dL',
+                p2: 'Status: Well Managed',
+                camY: 0.58,
+                zoom: 0.65,
+                skinOpacity: 0.16
+            },
+            'all': {
+                title: '🌐 Full Biological Digital Twin',
+                desc: 'Continuous multi-organ physiological twin model synchronized with real-time wearable telemetry streams.',
+                p1: 'Fidelity: 99.8%',
+                p2: 'Status: Synchronized',
+                camY: 0,
+                zoom: 1.0,
+                skinOpacity: 0.32
+            }
+        };
+
+        const t = telemetry[organId] || telemetry['all'];
+        titleEl.innerText = t.title;
+        descEl.innerHTML = t.desc;
+        p1El.innerText = t.p1;
+        p2El.innerText = t.p2;
+
+        targetCameraY = t.camY;
+        const vFov = camera.fov * (Math.PI / 180);
+        const baseDist = (5.0 / 2) / Math.tan(vFov / 2) * 1.10;
+        targetCameraZ = baseDist * t.zoom;
+
+        if (skinMaterial && viewMode === 'anatomy') {
+            skinMaterial.opacity = t.skinOpacity;
+        }
+
+        if (organId !== 'all') {
+            twinGroup.rotation.y = 0;
+            twinGroup.rotation.x = 0;
+            rotVelocityX = 0;
+            rotVelocityY = 0;
+        }
+    }
+
+    function toggleFullView() {
+        const elem = document.getElementById('twinViewport');
+        if (!document.fullscreenElement) {
+            elem.requestFullscreen().catch(err => console.log(err));
+        } else {
+            document.exitFullscreen();
+        }
+    }
+
+    /* =========================================================================
+       CLEAN 2D CANVASES (ECG, DNA & PREDICTIVE TRAJECTORY)
+       ========================================================================= */
+    
+    // 1. ECG Canvas
+    const ecgCanvas = document.getElementById('neatEcgCanvas');
+    const ecgCtx = ecgCanvas.getContext('2d');
+    let ecgX = 0, ecgPoints = [];
+
+    function resizeEcg() {
+        ecgCanvas.width = ecgCanvas.clientWidth;
+        ecgCanvas.height = ecgCanvas.clientHeight;
+    }
+
+    function drawEcg() {
+        const w = ecgCanvas.width;
+        const h = ecgCanvas.height;
+        const midY = h / 2;
+
+        ecgCtx.clearRect(0, 0, w, h);
+        ecgX = (ecgX + 2.0) % w;
+
+        let y = midY;
+        const cycle = ecgX % 90;
+        if (cycle > 25 && cycle < 32) y = midY - (cycle - 25) * 1.4;
+        else if (cycle >= 32 && cycle < 36) y = midY + 3;
+        else if (cycle >= 36 && cycle < 44) y = midY - (cycle === 40 ? 16 : 8);
+        else if (cycle >= 44 && cycle < 48) y = midY + 4;
+        else if (cycle >= 58 && cycle < 72) y = midY - Math.sin((cycle - 58) / 14 * Math.PI) * 4.5;
+
+        ecgPoints.push({ x: ecgX, y: y });
+        if (ecgPoints.length > w / 2) ecgPoints.shift();
+
+        ecgCtx.beginPath();
+        ecgCtx.strokeStyle = '#ef4444';
+        ecgCtx.lineWidth = 1.8;
+        ecgCtx.lineJoin = 'round';
+
+        for (let i = 0; i < ecgPoints.length; i++) {
+            const p = ecgPoints[i];
+            if (i === 0) ecgCtx.moveTo(p.x, p.y);
+            else ecgCtx.lineTo(p.x, p.y);
+        }
+        ecgCtx.stroke();
+
+        requestAnimationFrame(drawEcg);
+    }
+
+    // 2. DNA Stability Canvas
+    const dnaCanvas = document.getElementById('neatDnaCanvas');
+    const dnaCtx = dnaCanvas.getContext('2d');
+    let dnaAngle = 0;
+
+    function resizeDna() {
+        dnaCanvas.width = dnaCanvas.clientWidth;
+        dnaCanvas.height = dnaCanvas.clientHeight;
+    }
+
+    function drawDna() {
+        dnaCtx.clearRect(0, 0, dnaCanvas.width, dnaCanvas.height);
+        dnaAngle += 0.03;
+
+        const w = dnaCanvas.width;
+        const h = dnaCanvas.height;
+        const cy = h / 2;
+        const count = 12;
+        const step = w / (count - 1);
+        const radius = 18;
+        const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+
+        for (let i = 0; i < count; i++) {
+            const x = i * step;
+            const a = dnaAngle + i * 0.45;
+            const y1 = cy + Math.sin(a) * radius;
+            const y2 = cy - Math.sin(a) * radius;
+            const z = Math.cos(a);
+
+            dnaCtx.beginPath();
+            dnaCtx.moveTo(x, y1);
+            dnaCtx.lineTo(x, y2);
+            dnaCtx.strokeStyle = isDark ? `rgba(56, 189, 248, ${0.2 + (z + 1) * 0.25})` : `rgba(2, 132, 199, ${0.25 + (z + 1) * 0.25})`;
+            dnaCtx.lineWidth = 1.4;
+            dnaCtx.stroke();
+
+            dnaCtx.beginPath();
+            dnaCtx.arc(x, y1, 2.4 + z * 0.8, 0, Math.PI * 2);
+            dnaCtx.fillStyle = '#38bdf8';
+            dnaCtx.fill();
+
+            dnaCtx.beginPath();
+            dnaCtx.arc(x, y2, 2.4 - z * 0.8, 0, Math.PI * 2);
+            dnaCtx.fillStyle = '#a855f7';
+            dnaCtx.fill();
+        }
+        requestAnimationFrame(drawDna);
+    }
+
+    // 3. 24h Trajectory Canvas
+    const trajCanvas = document.getElementById('neatTrajectoryCanvas');
+    const trajCtx = trajCanvas.getContext('2d');
+    let trajShift = 0;
+
+    function resizeTraj() {
+        trajCanvas.width = trajCanvas.clientWidth;
+        trajCanvas.height = trajCanvas.clientHeight;
+    }
+
+    function drawTraj() {
+        trajCtx.clearRect(0, 0, trajCanvas.width, trajCanvas.height);
+        trajShift += 0.018;
+
+        const w = trajCanvas.width;
+        const h = trajCanvas.height;
+        const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+
+        trajCtx.beginPath();
+        trajCtx.moveTo(0, h);
+        for (let x = 0; x <= w; x += 8) {
+            const y = h * 0.55 + Math.sin(x * 0.025 + trajShift) * 8 + Math.sin(x * 0.045 - trajShift) * 3;
+            trajCtx.lineTo(x, y);
+        }
+        trajCtx.lineTo(w, h);
+        trajCtx.closePath();
+
+        const grad = trajCtx.createLinearGradient(0, 0, 0, h);
+        grad.addColorStop(0, isDark ? 'rgba(56, 189, 248, 0.35)' : 'rgba(2, 132, 199, 0.35)');
+        grad.addColorStop(1, 'rgba(56, 189, 248, 0.0)');
+        trajCtx.fillStyle = grad;
+        trajCtx.fill();
+
+        trajCtx.strokeStyle = isDark ? '#38bdf8' : '#0284c7';
+        trajCtx.lineWidth = 1.6;
+        trajCtx.stroke();
+
+        requestAnimationFrame(drawTraj);
+    }
+
+    // Live Theme Switching Observer
+    const themeObserver = new MutationObserver(() => {
+        if (scene) {
+            while(scene.children.length > 0){ 
+                scene.remove(scene.children[0]); 
+            }
+            setupLighting();
+            twinGroup = new THREE.Group();
+            scene.add(twinGroup);
+            organPins = [];
+            buildAnatomicallyPreciseHumanBody(twinGroup);
+            fitCameraToBody();
+        }
+    });
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            init3DHumanTwin();
+            resizeEcg();
+            drawEcg();
+            resizeDna();
+            drawDna();
+            resizeTraj();
+            drawTraj();
+        }, 60);
+    });
+
+    window.addEventListener('resize', () => {
+        fitCameraToBody();
+        resizeEcg();
+        resizeDna();
+        resizeTraj();
+    });
+</script>
+{% endblock %}

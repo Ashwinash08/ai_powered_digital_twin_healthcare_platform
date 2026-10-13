@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="dashboard-header" style="margin-bottom: 2rem;">
+    <h1 style="margin: 0 0 0.25rem 0;">Account Profile & Security Settings</h1>
+    <p style="color: var(--text-secondary); margin: 0;">Manage your login credentials, personal identification, and security preferences.</p>
+</div>
+
+<div class="grid" style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; max-width: 100%;">
+    
+    <!-- Left Column: User Summary Card -->
+    <div class="glass-panel" style="padding: 2rem; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: space-between;">
+        <div style="width: 100%;">
+            <div style="width: 100px; height: 100px; border-radius: 24px; background: linear-gradient(135deg, var(--primary-color), #8b5cf6); color: white; display: flex; align-items: center; justify-content: center; font-size: 2.8rem; font-weight: 700; margin: 0 auto 1.25rem auto; box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.4);">
+                {{ g.user.name[0] | upper }}
+            </div>
+            <h2 style="margin: 0 0 0.25rem 0; font-size: 1.5rem; color: var(--text-color);">{{ g.user.name }}</h2>
+            <div style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">{{ g.user.email }}</div>
+            
+            <div style="margin-bottom: 1.5rem;">
+                <span class="badge role-{{ g.user.role }}" style="font-size: 0.85rem; padding: 0.4rem 1rem;">
+                    {{ g.user.role | capitalize }} Account
+                </span>
+            </div>
+
+            <div style="background: rgba(0,0,0,0.02); padding: 1rem; border-radius: 12px; border: 1px solid var(--border-color); text-align: left; font-size: 0.82rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-secondary);">User ID:</span>
+                    <span style="font-weight: 600;">#USR-{{ g.user.id }}-2026</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-secondary);">Account Status:</span>
+                    <span style="color: #10b981; font-weight: 600;">Active & Verified</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-secondary);">2FA Security:</span>
+                    <span style="color: #10b981; font-weight: 600;">Protected (SHA-256)</span>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 1.5rem; width: 100%;">
+            {% if g.user.role == 'doctor' %}
+                <a href="{{ url_for('doctor_profile') }}" class="btn btn-outline" style="width: 100%; font-size: 0.85rem;">Edit Clinical Credentials ➔</a>
+            {% elif g.user.role == 'patient' %}
+                <a href="{{ url_for('patient_profile') }}" class="btn btn-outline" style="width: 100%; font-size: 0.85rem;">Edit Health & Twin Details ➔</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Right Column: Edit Credentials Form -->
+    <div class="glass-panel" style="padding: 2.25rem;">
+        <h3 style="margin: 0 0 1.5rem 0; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem; font-size: 1.15rem;">
+            Update Account Credentials
+        </h3>
+
+        <form method="POST" action="{{ url_for('account_profile') }}">
+            <div class="form-group">
+                <label for="name">Full Legal Name</label>
+                <input type="text" id="name" name="name" class="form-control" value="{{ g.user.name }}" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Primary Email Address</label>
+                <input type="email" id="email" name="email" class="form-control" value="{{ g.user.email }}" required>
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label for="password">Change Password <span style="font-weight: 400; color: var(--text-secondary);">(Leave blank to keep existing password)</span></label>
+                <div class="password-wrapper">
+                    <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" style="padding-right: 3rem;">
+                    <button type="button" class="password-toggle-btn" onclick="togglePassword('password', this)" aria-label="Toggle password visibility">
+                        <svg class="eye-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem;">
+                <button type="submit" class="btn btn-primary" style="padding: 0.75rem 2rem;">Save Changes</button>
+            </div>
+        </form>
+    </div>
+
+</div>
+
+<script>
+    function togglePassword(inputId, btn) {
+        const input = document.getElementById(inputId);
+        const icon = btn.querySelector('.eye-icon');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+        } else {
+            input.type = 'password';
+            icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,593 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+    .quality-grade {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.2rem 0.55rem;
+        border-radius: 8px;
+        font-weight: 800;
+        font-size: 0.78rem;
+    }
+    .grade-A {
+        background: #dcfce7;
+        color: #166534;
+        border: 1px solid #86efac;
+    }
+    .grade-B {
+        background: #eff6ff;
+        color: #1e40af;
+        border: 1px solid #bfdbfe;
+    }
+    .grade-C {
+        background: #fef3c7;
+        color: #92400e;
+        border: 1px solid #fde68a;
+    }
+    .grade-D {
+        background: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fca5a5;
+    }
+
+    .drift-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.22rem 0.55rem;
+        border-radius: 14px;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+    .drift-aligned {
+        background: #f0fdf4;
+        color: #15803d;
+        border: 1px solid #bbf7d0;
+    }
+    .drift-warning {
+        background: #fff1f2;
+        color: #be123c;
+        border: 1px solid #fecdd3;
+        animation: pulse-drift 2s infinite;
+    }
+
+    @keyframes pulse-drift {
+        0% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.4); }
+        70% { box-shadow: 0 0 0 5px rgba(225, 29, 72, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0); }
+    }
+</style>
+
+<div class="dashboard-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <h1 style="margin: 0 0 0.25rem 0;">Digital Twin Intelligence & Lifecycle Management</h1>
+        <p style="color: var(--text-secondary); margin: 0;">Synchronization fidelity, AI Twin Drift detection, Data Quality grading, Version snapshots, and What-If scenario sandboxes.</p>
+    </div>
+    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+        <button class="btn btn-outline" onclick="openWhatIfModal(1, 'General Cohort Sandbox')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="12 8 8 12 12 16 12 8"/></svg>
+            What-If Sandbox
+        </button>
+        <button class="btn btn-outline" onclick="openDataSourceModal()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>
+            Data Streams
+        </button>
+        <button class="btn btn-primary" onclick="openSyntheticTwinModal()" style="display: flex; align-items: center; gap: 0.45rem;">
+            <span>🧬</span> Synthetic Twin Generator
+        </button>
+    </div>
+</div>
+
+<!-- Twin Metrics Overview -->
+<div class="metrics-grid" style="margin-bottom: 2rem;">
+    <div class="metric-card">
+        <h3>Total Digital Twins</h3>
+        <div class="value">{{ total_twins }}</div>
+        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">Live virtual physiological models</div>
+    </div>
+    <div class="metric-card">
+        <h3>High Sync Fidelity</h3>
+        <div class="value" style="color: #10b981;">{{ active_sync }}</div>
+        <div style="font-size: 0.8rem; color: #10b981; margin-top: 0.25rem;">Sync score &ge; 85% (Continuous IoT)</div>
+    </div>
+    <div class="metric-card">
+        <h3>Twin Drift Divergences</h3>
+        <div class="value" style="color: {{ '#be123c' if drift_logs|length > 0 else '#10b981' }};">{{ drift_logs|length }}</div>
+        <div style="font-size: 0.8rem; color: {{ '#be123c' if drift_logs|length > 0 else '#10b981' }}; margin-top: 0.25rem;">
+            {{ 'Physical vs model divergence logged' if drift_logs|length > 0 else 'All models calibrated' }}
+        </div>
+    </div>
+    <div class="metric-card">
+        <h3>Avg Data Quality Score</h3>
+        <div class="value" style="color: var(--primary-color);">{{ avg_quality }}%</div>
+        <div style="font-size: 0.8rem; color: #166534; margin-top: 0.25rem;">High signal-to-noise ratio</div>
+    </div>
+</div>
+
+<!-- Twins Table -->
+<div class="glass-panel" style="padding: 1.5rem; overflow-x: auto; margin-bottom: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+        <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--text-color);">Active Digital Twin Registry</h3>
+        <span class="badge" style="background: #eff6ff; color: #1e40af; font-size: 0.75rem;">Continuous Bi-LSTM Forecasting</span>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Patient & Twin ID</th>
+                <th>Sync Fidelity Score</th>
+                <th>Data Quality Grade</th>
+                <th>Twin Drift Status</th>
+                <th>Version History</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for twin in twins %}
+            <tr>
+                <td>
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <div style="width: 38px; height: 38px; border-radius: 10px; background: linear-gradient(135deg, #3b82f6, #10b981); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700;">
+                            {{ twin.name[0] | upper }}
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; color: var(--text-color);">{{ twin.name }}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary);">#TWIN-{{ twin.patient_id }}-2026</div>
+                        </div>
+                    </div>
+                </td>
+                
+                <!-- Digital Twin Sync Score -->
+                <td style="min-width: 170px;">
+                    {% set sync = twin.sync_data %}
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                        <div style="flex: 1; background: var(--border-color); height: 8px; border-radius: 4px; overflow: hidden;">
+                            <div style="width: {{ sync.score }}%; height: 100%; background: {% if sync.score >= 85 %}#10b981{% elif sync.score >= 70 %}var(--primary-color){% else %}#f59e0b{% endif %};"></div>
+                        </div>
+                        <span style="font-size: 0.82rem; font-weight: 700; color: var(--heading-color);">{{ sync.score }}%</span>
+                    </div>
+                    <div style="font-size: 0.75rem; color: var(--success-color); display: flex; align-items: center; gap: 0.3rem;">
+                        <span style="width: 6px; height: 6px; border-radius: 50%; background: #10b981;"></span>
+                        {{ sync.last_sync_text }} &bull; {{ sync.latency_ms }}ms
+                    </div>
+                </td>
+
+                <!-- Twin Data Quality Score & Grade -->
+                <td>
+                    {% set qual = twin.quality_data %}
+                    <div style="display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.2rem;">
+                        <span class="quality-grade grade-{{ qual.grade_letter }}">
+                            Grade {{ qual.grade_letter }}
+                        </span>
+                        <span style="font-weight: 700; font-size: 0.85rem; color: var(--text-color);">{{ qual.score }}/100</span>
+                    </div>
+                    <div style="font-size: 0.72rem; color: var(--text-secondary);" title="{{ qual.recommendation }}">
+                        {{ qual.grade }} (Noise: {{ qual.artifacts_rejected_pct }}%)
+                    </div>
+                </td>
+
+                <!-- Twin Drift Detection -->
+                <td>
+                    {% set drift = twin.drift_data %}
+                    {% if drift.drift_detected %}
+                        <span class="drift-pill drift-warning" title="{{ drift.summary }}">
+                            🚨 Divergence: {{ drift.drift_percentage }}%
+                        </span>
+                        <div style="font-size: 0.72rem; color: #be123c; margin-top: 0.15rem;">
+                            {{ drift.drift_items[0].parameter if drift.drift_items else 'Biometric Drift' }}
+                        </div>
+                    {% else %}
+                        <span class="drift-pill drift-aligned">
+                            <span style="width: 6px; height: 6px; border-radius: 50%; background: #16a34a;"></span>
+                            Aligned (&lt;4.5% Drift)
+                        </span>
+                        <div style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 0.15rem;">
+                            Calibrated with Bi-LSTM
+                        </div>
+                    {% endif %}
+                </td>
+
+                <!-- Version History -->
+                <td>
+                    <div style="display: flex; align-items: center; gap: 0.4rem;">
+                        <span class="badge" style="background: var(--surface-muted); color: var(--text-secondary); font-weight: 700; font-size: 0.75rem;">
+                            {{ twin.versions_count or 1 }} Snapshots
+                        </span>
+                    </div>
+                    <div style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 0.15rem;">
+                        Active: v1.{{ twin.versions_count or 1 }}.0
+                    </div>
+                </td>
+
+                <!-- Actions -->
+                <td>
+                    <div style="display: flex; gap: 0.35rem; align-items: center;">
+                        <form action="{{ url_for('admin_twin_sync', patient_id=twin.patient_id) }}" method="POST" style="display:inline;">
+                            <button type="submit" class="btn btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.78rem;" title="Resync continuous wearable IoT stream and take snapshot">
+                                🔄 Resync
+                            </button>
+                        </form>
+                        <button onclick="openWhatIfModal({{ twin.patient_id }}, '{{ twin.name }}')" class="btn btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.78rem; border-color: #8b5cf6; color: #6d28d9;" title="Run What-If multi-agent intervention simulation">
+                            🧪 What-If
+                        </button>
+                        <a href="{{ url_for('doctor_twin', patient_id=twin.patient_id) }}" class="btn btn-primary" style="padding: 0.25rem 0.55rem; font-size: 0.78rem;" target="_blank">
+                            Inspect
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+            {% if not twins %}
+            <tr>
+                <td colspan="6" style="text-align: center; color: var(--text-secondary); padding: 2.5rem;">No Digital Twins registered yet.</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<!-- What-If Scenario Library Grid -->
+<div class="glass-panel" style="padding: 1.75rem; border-radius: 20px; margin-bottom: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+        <div>
+            <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--heading-color);">Simulated What-If Scenario Library</h3>
+            <p style="margin: 0.2rem 0 0 0; font-size: 0.82rem; color: var(--text-secondary);">Hypothetical clinical scenarios simulated in an isolated sandbox without altering live patient medical records.</p>
+        </div>
+        <span class="badge" style="background: rgba(147, 51, 234, 0.15); color: #a855f7; font-weight: 700;">Multi-Agent Virtual Sandbox</span>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 1.25rem;">
+        {% for scen in whatif_scenarios %}
+        <div style="background: var(--surface-color); border: 1.5px solid var(--border-color); border-radius: 14px; padding: 1.25rem; display: flex; flex-direction: column; justify-content: space-between; gap: 0.75rem;">
+            <div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.4rem;">
+                    <span style="font-weight: 800; font-size: 0.95rem; color: var(--heading-color);">{{ scen.scenario_title }}</span>
+                    <span class="badge" style="background: rgba(99,102,241,0.15); color: #818cf8; font-size: 0.7rem; font-weight: 700; text-transform: uppercase;">{{ scen.intervention_type }}</span>
+                </div>
+                <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+                    <strong>Subject:</strong> {{ scen.patient_name }} &bull; {{ scen.created_at[:10] }}
+                </div>
+                <div style="font-size: 0.84rem; color: var(--text-color); line-height: 1.45;">
+                    {{ scen.outcome_summary }}
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 0.6rem; border-top: 1px solid var(--border-color);">
+                <div style="font-size: 0.8rem; font-weight: 700; color: #059669;">
+                    {{ scen.risk_delta }}
+                </div>
+                <div style="font-size: 0.85rem; font-weight: 800; color: #2563eb;">
+                    Projected Twin: {{ scen.projected_health_score }}/100
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- What-If Scenario Sandbox Modal -->
+<div id="whatIfModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(5px); z-index: 1100; align-items: center; justify-content: center;">
+    <div class="glass-panel" style="background: var(--card-bg); width: 92%; max-width: 820px; padding: 2rem; border-radius: 20px; border: 1px solid var(--border-color); color: var(--text-color); box-shadow: 0 20px 40px rgba(0,0,0,0.4); max-height: 90vh; overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+            <div>
+                <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem; font-size: 1.2rem; color: var(--heading-color);">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polygon points="12 8 8 12 12 16 12 8"/></svg>
+                    What-If Clinical Scenario Sandbox
+                </h3>
+                <div style="font-size: 0.8rem; color: var(--text-secondary);" id="whatifTargetName">Testing simulation on Patient Twin</div>
+            </div>
+            <button onclick="closeWhatIfModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary);">&times;</button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 1.75rem;">
+            
+            <!-- Controls Panel -->
+            <div style="background: var(--surface-muted); border: 1.5px solid var(--border-color); border-radius: 14px; padding: 1.25rem;">
+                <div style="font-weight: 700; font-size: 0.88rem; color: var(--heading-color); margin-bottom: 1rem;">Hypothetical Interventions:</div>
+                
+                <div style="display: flex; flex-direction: column; gap: 0.85rem; font-size: 0.85rem;">
+                    <div>
+                        <label style="display: block; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.25rem;">Pharmacological Regimen</label>
+                        <select id="wiMed" style="width: 100%; padding: 0.5rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--surface-color); color: var(--text-color);">
+                            <option value="current">Maintain Current (Lisinopril 10mg)</option>
+                            <option value="increase_10mg">Increase Lisinopril to 20mg (+10mg)</option>
+                            <option value="decrease_5mg">Decrease Lisinopril to 5mg (-5mg)</option>
+                            <option value="discontinue">Abrupt Medication Discontinuation (0mg)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label style="display: block; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.25rem;">Dietary Protocol</label>
+                        <select id="wiDiet" style="width: 100%; padding: 0.5rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--surface-color); color: var(--text-color);">
+                            <option value="none">Standard Diet (Unchanged)</option>
+                            <option value="dash_diet">Prescribe Structured DASH Diet</option>
+                            <option value="low_sodium">Low Sodium Diet (&lt;1500mg/day)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label style="display: block; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.25rem;">Aerobic Exercise (Minutes/Week)</label>
+                        <select id="wiExercise" style="width: 100%; padding: 0.5rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--surface-color); color: var(--text-color);">
+                            <option value="0">Sedentary (0 min/week)</option>
+                            <option value="60">Light Activity (60 min/week)</option>
+                            <option value="150">Optimal Cardio (150 min/week)</option>
+                            <option value="250">Intense Cardio Rehab (250 min/week)</option>
+                        </select>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem;">
+                        <input type="checkbox" id="wiStress">
+                        <label for="wiStress" style="font-weight: 600; color: var(--text-secondary); cursor: pointer;">Include Mindfulness & Vagal Tone Training</label>
+                    </div>
+                </div>
+
+                <button onclick="runWhatIfSimulation()" class="btn btn-primary" style="width: 100%; margin-top: 1.25rem; font-weight: 700; background: linear-gradient(135deg, #7c3aed, #4f46e5); border: none;">
+                    ⚡ Execute Sandbox Simulation
+                </button>
+            </div>
+
+            <!-- Trajectory Projection Output -->
+            <div style="display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <span style="font-weight: 700; font-size: 0.95rem; color: var(--heading-color);">6-Month Trajectory Projection</span>
+                        <span id="wiScoreBadge" class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; font-size: 0.82rem; font-weight: 800;">Twin Score: 85/100</span>
+                    </div>
+
+                    <div style="height: 170px; margin-bottom: 1rem;">
+                        <canvas id="whatIfChart"></canvas>
+                    </div>
+
+                    <div id="wiSummaryBox" style="background: var(--surface-muted); border: 1.5px solid var(--border-color); border-radius: 10px; padding: 0.85rem; font-size: 0.84rem; color: var(--text-color); line-height: 1.45;">
+                        Select parameters and click Execute to project longitudinal multi-agent physiological trajectory.
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
+                    <button onclick="saveCurrentScenario()" id="saveScenarioBtn" class="btn btn-outline" style="border-color: #8b5cf6; color: #a855f7; font-size: 0.85rem; font-weight: 600;">
+                        💾 Save Scenario to Library
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Data Sources Modal -->
+<div id="sourcesModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center;">
+    <div class="glass-panel" style="background: var(--card-bg); width: 90%; max-width: 540px; padding: 2rem; border-radius: 20px; border: 1px solid var(--border-color); color: var(--text-color);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+            <h3 style="margin: 0; color: var(--heading-color);">Connected Data Streams & Ingestion Pipelines</h3>
+            <button onclick="closeDataSourceModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary);">&times;</button>
+        </div>
+        
+        <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.5rem;">
+            Configure the automated telemetry sources that feed into the Digital Twin multi-agent organ models.
+        </p>
+
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: var(--surface-muted); border-radius: 10px; border: 1px solid var(--border-color);">
+                <div>
+                    <div style="font-weight: 600; color: var(--text-color);">Continuous Wearables Stream (Apple Health / Fitbit)</div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);">Real-time HR, SpO2, HRV, and Blood Pressure</div>
+                </div>
+                <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">Online (WebSocket)</span>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: var(--surface-muted); border-radius: 10px; border: 1px solid var(--border-color);">
+                <div>
+                    <div style="font-weight: 600; color: var(--text-color);">EHR Fast Healthcare Interoperability (FHIR HL7)</div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);">Clinical diagnoses, past surgeries, allergy lists</div>
+                </div>
+                <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">Active (REST API)</span>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: var(--surface-muted); border-radius: 10px; border: 1px solid var(--border-color);">
+                <div>
+                    <div style="font-weight: 600; color: var(--text-color);">Diagnostic Laboratory Ingestion</div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);">Lipid panels, HbA1c, renal function, liver enzymes</div>
+                </div>
+                <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">Auto-Sync 24h</span>
+            </div>
+        </div>
+
+        <div style="margin-top: 1.5rem; text-align: right;">
+            <button class="btn btn-primary" onclick="closeDataSourceModal()">Done</button>
+        </div>
+    </div>
+</div>
+
+<!-- Synthetic Patient Twin Sandbox Modal -->
+<div id="syntheticTwinModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center;">
+    <div class="glass-panel" style="background: var(--card-bg); width: 90%; max-width: 520px; padding: 2rem; border-radius: 20px; border: 1px solid var(--border-color); color: var(--text-color);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+            <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem; color: var(--heading-color);">
+                <span>🧬</span> Synthetic Twin Sandbox Generator
+            </h3>
+            <button onclick="closeSyntheticTwinModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary);">&times;</button>
+        </div>
+        
+        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem; line-height: 1.45;">
+            Generate statistically desensitized, HIPAA-compliant synthetic patient cohorts using generative CTGAN distributions to stress-test your AI multi-agent pipelines safely without exposing real PHI.
+        </p>
+
+        <form action="{{ url_for('api_admin_synthetic_twins') }}" method="POST">
+            <div class="form-group" style="margin-bottom: 1rem;">
+                <label style="font-weight: 600; font-size: 0.88rem; color: var(--text-color);">Cohort Size (Number of Twins)</label>
+                <select name="count" class="form-control" style="background: var(--surface-color); color: var(--text-color); border: 1px solid var(--border-color);">
+                    <option value="3">3 Synthetic Patient Twins</option>
+                    <option value="5">5 Synthetic Patient Twins</option>
+                    <option value="10">10 Synthetic Patient Twins</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label style="font-weight: 600; font-size: 0.88rem; color: var(--text-color);">Primary Pathology Distribution</label>
+                <select name="pathology" class="form-control" style="background: var(--surface-color); color: var(--text-color); border: 1px solid var(--border-color);">
+                    <option value="cardio">Cardiovascular & Hypertension Cohort</option>
+                    <option value="diabetic">Type-2 Diabetes & Metabolic Syndrome Cohort</option>
+                    <option value="pulmo">Pulmonary & Bronchial Asthma Cohort</option>
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button type="button" class="btn btn-outline" onclick="closeSyntheticTwinModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary" style="font-weight: 700;">Generate Cohort</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    var currentPatientId = 1;
+    var currentSimulationResult = null;
+    var whatIfChartInstance = null;
+
+    function openDataSourceModal() {
+        document.getElementById('sourcesModal').style.display = 'flex';
+    }
+    function closeDataSourceModal() {
+        document.getElementById('sourcesModal').style.display = 'none';
+    }
+    function openSyntheticTwinModal() {
+        document.getElementById('syntheticTwinModal').style.display = 'flex';
+    }
+    function closeSyntheticTwinModal() {
+        document.getElementById('syntheticTwinModal').style.display = 'none';
+    }
+
+    function openWhatIfModal(patientId, patientName) {
+        currentPatientId = patientId;
+        document.getElementById('whatifTargetName').innerText = 'Testing hypothetical interventions on ' + patientName + ' (#TWIN-' + patientId + ')';
+        document.getElementById('whatIfModal').style.display = 'flex';
+        runWhatIfSimulation();
+    }
+
+    function closeWhatIfModal() {
+        document.getElementById('whatIfModal').style.display = 'none';
+    }
+
+    function runWhatIfSimulation() {
+        var payload = {
+            patient_id: currentPatientId,
+            med_dose: document.getElementById('wiMed').value,
+            diet: document.getElementById('wiDiet').value,
+            exercise_min: document.getElementById('wiExercise').value,
+            stress_reduction: document.getElementById('wiStress').checked
+        };
+
+        fetch('/api/twin/whatif/simulate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            currentSimulationResult = data;
+            
+            // Update Score Badge
+            var badge = document.getElementById('wiScoreBadge');
+            badge.innerText = 'Twin Score: ' + data.projected_health_score + '/100';
+            if (data.projected_health_score >= 80) {
+                badge.style.background = '#dcfce7';
+                badge.style.color = '#166534';
+            } else if (data.projected_health_score >= 65) {
+                badge.style.background = '#eff6ff';
+                badge.style.color = '#1e40af';
+            } else {
+                badge.style.background = '#fee2e2';
+                badge.style.color = '#991b1b';
+            }
+
+            // Update Summary
+            document.getElementById('wiSummaryBox').innerHTML = '<strong>' + data.risk_delta + '</strong><br>' + data.summary;
+
+            // Render Chart
+            renderWhatIfChart(data.timeline_months, data.systolic_trajectory);
+        })
+        .catch(function(err) {
+            console.error(err);
+        });
+    }
+
+    function renderWhatIfChart(labels, data) {
+        var ctx = document.getElementById('whatIfChart').getContext('2d');
+        if (whatIfChartInstance) {
+            whatIfChartInstance.destroy();
+        }
+
+        whatIfChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Projected Systolic BP (mmHg)',
+                    data: data,
+                    borderColor: '#7c3aed',
+                    backgroundColor: 'rgba(124, 58, 237, 0.12)',
+                    borderWidth: 2.5,
+                    fill: true,
+                    tension: 0.35,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#7c3aed'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        min: 90,
+                        max: 170,
+                        grid: { color: '#f1f5f9' },
+                        ticks: { font: { size: 10 } }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { size: 10 } }
+                    }
+                }
+            }
+        });
+    }
+
+    function saveCurrentScenario() {
+        if (!currentSimulationResult) return;
+        var title = prompt('Enter a title for this What-If scenario:', 'Optimal Rx & DASH Protocol');
+        if (!title) return;
+
+        var payload = {
+            patient_id: currentPatientId,
+            title: title,
+            intervention_type: 'combined',
+            parameters: {
+                med_dose: document.getElementById('wiMed').value,
+                diet: document.getElementById('wiDiet').value,
+                exercise_min: document.getElementById('wiExercise').value
+            },
+            projected_health_score: currentSimulationResult.projected_health_score,
+            risk_delta: currentSimulationResult.risk_delta,
+            summary: currentSimulationResult.summary
+        };
+
+        fetch('/api/twin/whatif/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            alert('Scenario successfully saved to What-If Library!');
+            window.location.reload();
+        });
+    }
+</script>
+{% endblock %}

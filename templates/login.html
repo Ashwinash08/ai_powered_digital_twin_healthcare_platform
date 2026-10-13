@@ -1,0 +1,299 @@
+{% extends 'base.html' %}
+
+{% block auth_content %}
+<div class="auth-container">
+    <!-- Interactive Ambient Canvas Background -->
+    <canvas id="authCanvas" class="auth-bg-canvas"></canvas>
+    <div class="auth-ambient-glow"></div>
+
+    <div class="auth-card" id="authCard">
+        <!-- Brand & Header -->
+        <div class="auth-header">
+            <div class="auth-header-brand">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="currentColor" />
+                    <path d="M2 17L12 22L22 17M2 12L12 17L22 12" stroke="currentColor" stroke-width="2.2"
+                        stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <span>HEALTHTWIN AI</span>
+            </div>
+            <h1>Welcome Back</h1>
+        </div>
+
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="auth-alert" role="alert">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <span>
+                {% for message in messages %}
+                {{ message }}{% if not loop.last %}<br>{% endif %}
+                {% endfor %}
+            </span>
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <div id="js-error" class="auth-alert" style="display: none;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <span id="js-error-text"></span>
+        </div>
+
+        <form method="post" id="loginForm" novalidate autocomplete="on">
+            <!-- Interactive Role Selector -->
+            <div class="auth-input-group">
+                <label>Select Role</label>
+                <div class="role-toggle-group">
+                    <div class="role-toggle-option">
+                        <input type="radio" id="role-patient" name="role" value="patient" required checked>
+                        <label for="role-patient" class="role-toggle-label">
+                            <span class="role-icon">🫀</span>
+                            <span class="role-text">Patient</span>
+                            <span class="role-check-indicator">
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </span>
+                        </label>
+                    </div>
+                    <div class="role-toggle-option">
+                        <input type="radio" id="role-doctor" name="role" value="doctor" required>
+                        <label for="role-doctor" class="role-toggle-label">
+                            <span class="role-icon">🩺</span>
+                            <span class="role-text">Doctor</span>
+                            <span class="role-check-indicator">
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Email Input -->
+            <div class="auth-input-group">
+                <label for="email">Email Address</label>
+                <div class="auth-input-wrapper">
+                    <span class="auth-input-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z">
+                            </path>
+                            <polyline points="22,6 12,13 2,6"></polyline>
+                        </svg>
+                    </span>
+                    <input type="email" id="email" name="email" class="auth-input" required
+                        placeholder="your.email@example.com" autocomplete="email">
+                </div>
+            </div>
+
+            <!-- Password Input -->
+            <div class="auth-input-group">
+                <label for="password">Password</label>
+                <div class="auth-input-wrapper">
+                    <span class="auth-input-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                    </span>
+                    <input type="password" id="password" name="password" class="auth-input" required
+                        placeholder="••••••••" style="padding-right: 3rem;" autocomplete="current-password">
+                    <button type="button" class="password-toggle-btn" onclick="togglePassword('password', this)"
+                        aria-label="Toggle password visibility">
+                        <svg class="eye-icon" viewBox="0 0 24 24" width="18" height="18" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Remember & Forgot -->
+            <div class="auth-options">
+                <label>
+                    <input type="checkbox" name="remember"
+                        style="accent-color: var(--primary-color); width: 16px; height: 16px; border-radius: 4px; cursor: pointer;">
+                    <span>Remember me</span>
+                </label>
+                <a href="{{ url_for('forgot_password') }}">Forgot password?</a>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="auth-btn" id="submitBtn">
+                <span>Sign In to Platform</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+            </button>
+        </form>
+
+        <!-- Footer Navigation -->
+        <div class="auth-footer">
+            <p>
+                Don't have an account? <a href="{{ url_for('register') }}">Create Account</a>
+            </p>
+            <div style="display: flex; justify-content: center; gap: 0.75rem; margin-top: 0.5rem;">
+                <a href="{{ url_for('index') }}" class="auth-nav-pill">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="19" y1="12" x2="5" y2="12"></line>
+                        <polyline points="12 19 5 12 12 5"></polyline>
+                    </svg>
+                    <span>Back to Home</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Password visibility toggle
+    function togglePassword(inputId, btn) {
+        const input = document.getElementById(inputId);
+        const icon = btn.querySelector('.eye-icon');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+        } else {
+            input.type = 'password';
+            icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+        }
+    }
+
+    // Form client-side validation & interactive shake
+    document.getElementById('loginForm').addEventListener('submit', function (e) {
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value.trim();
+        const errBox = document.getElementById('js-error');
+        const errText = document.getElementById('js-error-text');
+        const card = document.getElementById('authCard');
+
+        if (!email || !password) {
+            e.preventDefault();
+            errText.textContent = 'Please provide both your email and password to proceed.';
+            errBox.style.display = 'flex';
+            card.classList.remove('auth-shake');
+            void card.offsetWidth; // Trigger reflow for animation restart
+            card.classList.add('auth-shake');
+            return;
+        }
+
+        // Email regex check
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            e.preventDefault();
+            errText.textContent = 'Please enter a valid email address (e.g., name@example.com).';
+            errBox.style.display = 'flex';
+            card.classList.remove('auth-shake');
+            void card.offsetWidth;
+            card.classList.add('auth-shake');
+            return;
+        }
+
+        // Visual feedback on submit button
+        const btn = document.getElementById('submitBtn');
+        btn.innerHTML = '<span>Authenticating...</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="animation: spin 1s linear infinite;"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>';
+    });
+
+    // Interactive ambient neural particle canvas
+    (function initAuthCanvas() {
+        const canvas = document.getElementById('authCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let particles = [];
+        const mouse = { x: null, y: null, radius: 120 };
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            particles = [];
+            const count = Math.floor((width * height) / 22000);
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    vx: (Math.random() - 0.5) * 0.4,
+                    vy: (Math.random() - 0.5) * 0.4,
+                    radius: Math.random() * 2 + 1,
+                    alpha: Math.random() * 0.4 + 0.15
+                });
+            }
+        }
+
+        window.addEventListener('resize', resize);
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+        window.addEventListener('mouseleave', () => {
+            mouse.x = null;
+            mouse.y = null;
+        });
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            const isDark = (document.documentElement.getAttribute('data-theme') || 'dark') === 'dark';
+
+            for (let i = 0; i < particles.length; i++) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                if (p.x < 0 || p.x > width) p.vx *= -1;
+                if (p.y < 0 || p.y > height) p.vy *= -1;
+
+                if (mouse.x !== null) {
+                    const dx = mouse.x - p.x;
+                    const dy = mouse.y - p.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < mouse.radius) {
+                        p.x -= (dx / dist) * 1.5;
+                        p.y -= (dy / dist) * 1.5;
+                    }
+                }
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = isDark ? `rgba(56, 189, 248, ${p.alpha})` : `rgba(2, 132, 199, ${p.alpha})`;
+                ctx.fill();
+
+                for (let j = i + 1; j < particles.length; j++) {
+                    const p2 = particles[j];
+                    const dx = p.x - p2.x;
+                    const dy = p.y - p2.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 110) {
+                        ctx.beginPath();
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.strokeStyle = isDark ? `rgba(56, 189, 248, ${(1 - dist / 110) * 0.15})` : `rgba(2, 132, 199, ${(1 - dist / 110) * 0.12})`;
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+
+        resize();
+        animate();
+    })();
+</script>
+{% endblock %}

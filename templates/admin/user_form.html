@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1>{{ 'Edit User Account' if user else 'Create New Platform User' }}</h1>
+    <p style="color: var(--text-secondary);">Configure user credentials, role permissions, and clinical specialization profile.</p>
+</div>
+
+<div class="glass-panel" style="max-width: 900px; padding: 2.25rem;">
+    <form method="POST">
+        <div class="form-group">
+            <label for="name">Full Legal Name</label>
+            <input type="text" id="name" name="name" class="form-control" value="{{ user.name if user else '' }}" placeholder="e.g. Dr. Sarah Jenkins or John Doe" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email" class="form-control" value="{{ user.email if user else '' }}" placeholder="user@healthcare-ai.org" required>
+        </div>
+        
+        {% if not user %}
+        <div class="form-group">
+            <label for="password">Initial Password</label>
+            <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required>
+        </div>
+        {% endif %}
+        
+        <div class="form-group">
+            <label for="role">Assigned Platform Role</label>
+            <select id="role" name="role" class="form-control" onchange="toggleRoleFields()" required>
+                <option value="patient" {% if user and user.role == 'patient' %}selected{% endif %}>Patient (Digital Twin Access)</option>
+                <option value="doctor" {% if user and user.role == 'doctor' %}selected{% endif %}>Doctor (Clinical Intelligence & CDS)</option>
+                <option value="admin" {% if user and user.role == 'admin' %}selected{% endif %}>Administrator (System Governance)</option>
+            </select>
+        </div>
+
+        <!-- Doctor Specific Fields -->
+        <div id="doctorFields" style="display: {% if user and user.role == 'doctor' %}block{% else %}none{% endif %}; background: rgba(59, 130, 246, 0.04); padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
+            <h4 style="margin: 0 0 1rem 0; color: var(--primary-color); font-size: 0.95rem;">Doctor Credentials & Specialization</h4>
+            <div class="form-group">
+                <label for="specialization">Medical Specialization</label>
+                <input type="text" id="specialization" name="specialization" class="form-control" value="{{ user.specialization if user and user.specialization else 'Cardiology & AI Diagnostics' }}" placeholder="e.g. Cardiology, Endocrinology, Oncology">
+            </div>
+            <div class="form-group">
+                <label for="license_number">Medical License / Board ID</label>
+                <input type="text" id="license_number" name="license_number" class="form-control" value="{{ user.license_number if user and user.license_number else 'MED-REG-2026' }}" placeholder="e.g. MED-CA-98421">
+            </div>
+        </div>
+
+        <!-- Patient Specific Fields -->
+        <div id="patientFields" style="display: {% if not user or (user and user.role == 'patient') %}block{% else %}none{% endif %}; background: rgba(16, 185, 129, 0.04); padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
+            <h4 style="margin: 0 0 1rem 0; color: #10b981; font-size: 0.95rem;">Patient Demographics & Twin Baseline</h4>
+            <div class="grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="dob">Date of Birth</label>
+                    <input type="date" id="dob" name="dob" class="form-control" value="{{ user.dob if user and user.dob else '1990-05-15' }}">
+                </div>
+                <div class="form-group">
+                    <label for="blood_group">Blood Group</label>
+                    <select id="blood_group" name="blood_group" class="form-control">
+                        <option value="A+" {% if user and user.blood_group == 'A+' %}selected{% endif %}>A+</option>
+                        <option value="A-" {% if user and user.blood_group == 'A-' %}selected{% endif %}>A-</option>
+                        <option value="B+" {% if user and user.blood_group == 'B+' %}selected{% endif %}>B+</option>
+                        <option value="B-" {% if user and user.blood_group == 'B-' %}selected{% endif %}>B-</option>
+                        <option value="O+" {% if user and user.blood_group == 'O+' or not user %}selected{% endif %}>O+</option>
+                        <option value="O-" {% if user and user.blood_group == 'O-' %}selected{% endif %}>O-</option>
+                        <option value="AB+" {% if user and user.blood_group == 'AB+' %}selected{% endif %}>AB+</option>
+                        <option value="AB-" {% if user and user.blood_group == 'AB-' %}selected{% endif %}>AB-</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+            <button type="submit" class="btn btn-primary" style="padding: 0.6rem 1.5rem;">{{ 'Save Changes' if user else 'Create User' }}</button>
+            <a href="{{ url_for('admin_users') }}" class="btn btn-outline">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    function toggleRoleFields() {
+        const role = document.getElementById('role').value;
+        document.getElementById('doctorFields').style.display = (role === 'doctor') ? 'block' : 'none';
+        document.getElementById('patientFields').style.display = (role === 'patient') ? 'block' : 'none';
+    }
+</script>
+{% endblock %}

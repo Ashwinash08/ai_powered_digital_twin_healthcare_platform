@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="dashboard-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+    <div>
+        <h1 style="margin: 0 0 0.25rem 0;">Healthcare Data Ingestion & Governance</h1>
+        <p style="color: var(--text-secondary); margin: 0;">Manage bulk patient datasets, FHIR HL7 telemetry feeds, schema integrity, and sensor pipelines.</p>
+    </div>
+    <div style="display: flex; gap: 0.75rem;">
+        <button class="btn btn-outline" onclick="alert('Exporting encrypted database backup...')">Export Backup (.sql)</button>
+        <button class="btn btn-primary" onclick="alert('Import dataset pipeline ready for CSV/JSON/FHIR bundles.')">+ Import Dataset</button>
+    </div>
+</div>
+
+<div class="metrics-grid" style="margin-bottom: 2rem;">
+    <div class="metric-card">
+        <h3>Total Clinical Records</h3>
+        <div class="value">142,891</div>
+        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">EHR observations & labs</div>
+    </div>
+    <div class="metric-card">
+        <h3>Sensor Telemetry Points</h3>
+        <div class="value" style="color: var(--primary-color);">8.42M</div>
+        <div style="font-size: 0.8rem; color: #10b981; margin-top: 0.25rem;">Real-time IoT streams</div>
+    </div>
+    <div class="metric-card">
+        <h3>Data Integrity Score</h3>
+        <div class="value" style="color: #10b981;">99.97%</div>
+        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">FHIR compliant</div>
+    </div>
+    <div class="metric-card">
+        <h3>Storage Utilization</h3>
+        <div class="value">1.42 GB</div>
+        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">Encrypted AES-256</div>
+    </div>
+</div>
+
+<div class="grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+    <div class="glass-panel" style="padding: 2rem;">
+        <h3 style="margin: 0 0 1rem 0; font-size: 1.15rem; display: flex; align-items: center; gap: 0.5rem;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Dataset Ingestion Pipelines
+        </h3>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6; margin-bottom: 1.5rem;">
+            Import structured electronic medical records, laboratory HL7 panels, or wearable time-series vectors directly into the Digital Twin pipeline.
+        </p>
+
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <div style="padding: 1rem; background: rgba(59, 130, 246, 0.04); border-radius: 12px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <div style="font-weight: 600; font-size: 0.9rem;">FHIR HL7 v4.0.1 Data Stream</div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);">Real-time hospital EHR interoperability</div>
+                </div>
+                <span class="badge" style="background: #dcfce7; color: #166534;">Connected</span>
+            </div>
+            
+            <div style="padding: 1rem; background: rgba(0, 0, 0, 0.02); border-radius: 12px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <div style="font-weight: 600; font-size: 0.9rem;">IoT Wearables Ingestion Queue</div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);">Kafka broker &bull; 1,200 msg/sec</div>
+                </div>
+                <span class="badge" style="background: #dcfce7; color: #166534;">Active</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="glass-panel" style="padding: 2rem;">
+        <h3 style="margin: 0 0 1rem 0; font-size: 1.15rem; display: flex; align-items: center; gap: 0.5rem;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            Automated Data Validation & Hygiene Engine
+        </h3>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6; margin-bottom: 1.5rem;">
+            Continuous rule-based validation scans detect missing vital fields, range outliers, or duplicate identity vectors.
+        </p>
+
+        <div style="padding: 1rem; background: rgba(0,0,0,0.02); border-radius: 10px; font-family: monospace; font-size: 0.85rem; border: 1px solid var(--border-color); line-height: 1.6;">
+            <div style="color: #10b981; font-weight: 600;">✓ Automated Scan Status: PASS</div>
+            <div style="color: var(--text-secondary);">Last complete check: 24 mins ago</div>
+            <div style="color: var(--text-secondary);">Anomalies isolated: 0 records</div>
+            <div style="color: var(--text-secondary);">Vector index alignment: 100%</div>
+        </div>
+
+        <button class="btn btn-outline" style="width: 100%; margin-top: 1.25rem;" onclick="alert('Running validation scan across 142k records...')">
+            Run On-Demand Validation Scan
+        </button>
+    </div>
+</div>
+{% endblock %}

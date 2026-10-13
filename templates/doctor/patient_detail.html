@@ -1,0 +1,561 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    /* Tabs */
+    .clinical-tabs {
+        display: flex;
+        gap: 0.5rem;
+        border-bottom: 2px solid #e2e8f0;
+        margin-bottom: 2rem;
+    }
+    .clinical-tab {
+        padding: 0.85rem 1.6rem;
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: var(--text-secondary);
+        cursor: pointer;
+        border-bottom: 3px solid transparent;
+        margin-bottom: -2px;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        border-radius: 8px 8px 0 0;
+        user-select: none;
+    }
+    .clinical-tab:hover {
+        color: var(--primary-color);
+        background: rgba(59, 130, 246, 0.05);
+    }
+    .clinical-tab.active {
+        color: var(--primary-color);
+        border-bottom-color: var(--primary-color);
+        background: rgba(59, 130, 246, 0.08);
+        font-weight: 700;
+    }
+
+    .clinical-tab-pane {
+        display: none;
+        animation: fadeInTab 0.25s ease-out;
+    }
+    .clinical-tab-pane.active {
+        display: block;
+    }
+
+    @keyframes fadeInTab {
+        from {
+            opacity: 0;
+            transform: translateY(6px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<!-- Patient Header & Navigation -->
+{% include 'doctor/_patient_nav.html' %}
+
+<div>
+    <!-- AI Generated Summary Alert -->
+    <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 2rem; border-left: 4px solid var(--primary-color); background: rgba(59, 130, 246, 0.05); border-radius: 16px;">
+        <h3 style="color: var(--primary-color); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem; font-weight: 700;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            AI Clinical Summary
+        </h3>
+        <p style="margin: 0; color: var(--text-color); font-size: 0.95rem; line-height: 1.6;">
+            Patient is currently under active monitoring for pre-hypertension. Recent wearable data (synced 2 hours ago) indicates a stable resting heart rate but shows slight elevations in evening blood pressure. The patient has successfully adhered to the Lisinopril regimen prescribed last month. <strong>Recommendation:</strong> Order a follow-up lipid panel to verify cholesterol trajectory before adjusting medication.
+        </p>
+    </div>
+
+    <!-- Interactive Clinical Tabs -->
+    <div class="clinical-tabs">
+        <div class="clinical-tab {% if active_tab == 'overview' or not active_tab %}active{% endif %}" onclick="switchClinicalTab('tab-overview', this)" id="btn-tab-overview">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            Overview & History
+        </div>
+        <div class="clinical-tab {% if active_tab == 'reports' %}active{% endif %}" onclick="switchClinicalTab('tab-reports', this)" id="btn-tab-reports">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            Lab Reports & Files ({{ patient_files|length if patient_files else 0 }})
+        </div>
+        <div class="clinical-tab {% if active_tab == 'medications' %}active{% endif %}" onclick="switchClinicalTab('tab-medications', this)" id="btn-tab-medications">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+            Medications & Allergies
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 1: OVERVIEW & HISTORY                  -->
+    <!-- ========================================== -->
+    <div id="tab-overview" class="clinical-tab-pane {% if active_tab == 'overview' or not active_tab %}active{% endif %}">
+        <div class="grid" style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+            
+            <!-- Medical History Timeline -->
+            <div class="glass-panel" style="padding: 2rem; border-radius: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+                    <h3 style="margin: 0; font-size: 1.2rem; font-weight: 700; color: var(--heading-color);">Medical History Timeline</h3>
+                    <span class="badge" style="background: rgba(37,99,235,0.12); color: var(--primary-color); font-size: 0.78rem;">Chronological EHR</span>
+                </div>
+                
+                <div style="position: relative; padding-left: 2rem; border-left: 2px solid var(--border-color); display: flex; flex-direction: column; gap: 2rem;">
+                    <!-- Timeline Item -->
+                    <div style="position: relative;">
+                        <div style="position: absolute; left: -2rem; top: 0; width: 14px; height: 14px; border-radius: 50%; background: #2563eb; transform: translateX(-50%); border: 3px solid var(--card-bg); box-shadow: 0 0 0 1px #93c5fd;"></div>
+                        <div style="font-size: 0.85rem; color: #2563eb; font-weight: 700; margin-bottom: 0.25rem;">Oct 12, 2023</div>
+                        <div style="font-weight: 700; color: var(--heading-color); margin-bottom: 0.25rem; font-size: 1rem;">Cardiology Consultation</div>
+                        <div style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5;">Prescribed Lisinopril 10mg daily for pre-hypertension management. Advised dietary sodium reduction and daily 30-min walking.</div>
+                    </div>
+                    
+                    <!-- Timeline Item -->
+                    <div style="position: relative;">
+                        <div style="position: absolute; left: -2rem; top: 0; width: 14px; height: 14px; border-radius: 50%; background: #64748b; transform: translateX(-50%); border: 3px solid var(--card-bg); box-shadow: 0 0 0 1px #cbd5e1;"></div>
+                        <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 700; margin-bottom: 0.25rem;">Sep 28, 2023</div>
+                        <div style="font-weight: 700; color: var(--heading-color); margin-bottom: 0.25rem; font-size: 1rem;">Routine Diagnostic Panel (Lipid Profile & Glucose)</div>
+                        <div style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5;">Total cholesterol: 210 mg/dL. HDL: 45 mg/dL. LDL: 130 mg/dL. Fasting Glucose: 98 mg/dL.</div>
+                    </div>
+                    
+                    <!-- Timeline Item -->
+                    <div style="position: relative;">
+                        <div style="position: absolute; left: -2rem; top: 0; width: 14px; height: 14px; border-radius: 50%; background: #64748b; transform: translateX(-50%); border: 3px solid var(--card-bg); box-shadow: 0 0 0 1px #cbd5e1;"></div>
+                        <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 700; margin-bottom: 0.25rem;">Feb 15, 2021</div>
+                        <div style="font-weight: 700; color: var(--heading-color); margin-bottom: 0.25rem; font-size: 1rem;">Laparoscopic Appendectomy</div>
+                        <div style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5;">Uncomplicated laparoscopic appendiceal removal at General Hospital. Full wound recovery with zero postoperative complications.</div>
+                    </div>
+
+                    {% if patient and patient.medical_history %}
+                    <div style="position: relative;">
+                        <div style="position: absolute; left: -2rem; top: 0; width: 14px; height: 14px; border-radius: 50%; background: #10b981; transform: translateX(-50%); border: 3px solid var(--card-bg); box-shadow: 0 0 0 1px #86efac;"></div>
+                        <div style="font-size: 0.85rem; color: #10b981; font-weight: 700; margin-bottom: 0.25rem;">Profile Clinical Notes</div>
+                        <div style="font-weight: 700; color: var(--heading-color); margin-bottom: 0.25rem; font-size: 1rem;">Documented Baseline Conditions</div>
+                        <div style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5;">{{ patient.medical_history }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Allergies & Quick Alerts -->
+            <div style="display: flex; flex-direction: column; gap: 2rem;">
+                <!-- Allergies -->
+                <div class="glass-panel" style="padding: 1.75rem; background: var(--surface-color); border: 1.5px solid rgba(239, 68, 68, 0.3); border-radius: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="color: #ef4444; margin: 0; font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                            Allergies & Alerts
+                        </h3>
+                        <span class="badge" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); font-size: 0.72rem; font-weight: 700;">Critical Alert</span>
+                    </div>
+                    <ul style="margin: 0; padding-left: 1.25rem; color: var(--text-color); font-size: 0.92rem; line-height: 1.7;">
+                        {% if patient and patient.allergies %}
+                        <li><strong>Registered:</strong> {{ patient.allergies }}</li>
+                        {% else %}
+                        <li><strong>Penicillin:</strong> Severe rash / Anaphylaxis risk</li>
+                        <li><strong>Latex:</strong> Mild contact dermatitis</li>
+                        {% endif %}
+                    </ul>
+                    <button type="button" class="btn btn-outline" style="width: 100%; margin-top: 1.25rem; font-size: 0.85rem; border-color: rgba(239, 68, 68, 0.4); color: #ef4444; background: var(--surface-color);" onclick="switchClinicalTab('tab-medications', document.getElementById('btn-tab-medications'))">
+                        View Allergy Registry →
+                    </button>
+                </div>
+                
+                <!-- Current Medications -->
+                <div class="glass-panel" style="padding: 1.75rem; border-radius: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+                        <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700; color: var(--heading-color);">Active Prescriptions</h3>
+                        <span class="badge" style="background: rgba(16,185,129,0.12); color: var(--success-color); font-size: 0.72rem;">Active</span>
+                    </div>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+                        {% if patient and patient.current_medications %}
+                        <div style="background: var(--surface-color); padding: 0.85rem 1rem; border-radius: 10px; border: 1px solid var(--border-color);">
+                            <div style="font-weight: 700; color: var(--heading-color); font-size: 0.92rem;">{{ patient.current_medications }}</div>
+                            <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.2rem;">Ongoing patient regimen</div>
+                        </div>
+                        {% else %}
+                        <div style="background: var(--surface-color); padding: 0.85rem 1rem; border-radius: 10px; border: 1px solid var(--border-color);">
+                            <div style="font-weight: 700; color: var(--heading-color); font-size: 0.92rem;">Lisinopril (10mg)</div>
+                            <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.2rem;">1 tablet daily with breakfast &bull; ACE Inhibitor</div>
+                        </div>
+                        <div style="background: var(--surface-color); padding: 0.85rem 1rem; border-radius: 10px; border: 1px solid var(--border-color);">
+                            <div style="font-weight: 700; color: var(--heading-color); font-size: 0.92rem;">Atorvastatin (20mg)</div>
+                            <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.2rem;">1 tablet daily at bedtime &bull; Lipid Management</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <button type="button" class="btn btn-outline" style="width: 100%; margin-top: 1.25rem; font-size: 0.85rem;" onclick="switchClinicalTab('tab-medications', document.getElementById('btn-tab-medications'))">
+                        Manage Prescriptions →
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 2: LAB REPORTS & FILES                 -->
+    <!-- ========================================== -->
+    <div id="tab-reports" class="clinical-tab-pane {% if active_tab == 'reports' %}active{% endif %}">
+        <div style="display: grid; grid-template-columns: 1fr 1.35fr; gap: 2rem; margin-bottom: 2rem;">
+            
+            <!-- Upload Report Direct Ingestion Box -->
+            <div class="glass-panel" style="padding: 2rem; border-radius: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                    <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--heading-color); display: flex; align-items: center; gap: 0.5rem;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        Upload & Attach Lab Report
+                    </h3>
+                    <span class="badge" style="background: rgba(37,99,235,0.12); color: var(--primary-color); font-size: 0.75rem;">Doctor Portal</span>
+                </div>
+                <p style="color: var(--text-muted); font-size: 0.86rem; margin-top: 0; margin-bottom: 1.25rem;">
+                    Attach diagnostic panels, imaging scans (PDF, PNG, JPG) or wearable logs to calibrate this patient's digital twin model.
+                </p>
+
+                <form method="post" action="{{ url_for('doctor_patient_detail', patient_id=patient_id) }}" enctype="multipart/form-data">
+                    <input type="hidden" name="action" value="upload_file">
+                    
+                    <div class="form-group" style="margin-bottom: 1.25rem;">
+                        <label style="font-weight: 600; font-size: 0.84rem; color: var(--text-color); margin-bottom: 0.4rem; display: block;">Report Classification</label>
+                        <select name="file_type" class="form-control" required style="padding: 0.65rem 0.85rem; border-radius: 10px; border: 1.5px solid var(--border-color); font-size: 0.88rem; width: 100%; background: var(--surface-color); color: var(--text-color);">
+                            <option value="Lab Report">Diagnostic Laboratory Panel (Lipids, CBC, HbA1c)</option>
+                            <option value="Cardiology / ECG">Cardiology ECG / Echocardiogram Report</option>
+                            <option value="Prescription">Physician Prescription Slip</option>
+                            <option value="Radiology / Imaging">Imaging / Radiology Report (X-Ray, CT, MRI)</option>
+                            <option value="Wearable Data">Continuous Wearable Export (CSV/JSON)</option>
+                            <option value="Discharge Summary">Hospital Discharge Summary</option>
+                            <option value="Other">Other Medical File</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 1.25rem;">
+                        <label style="font-weight: 600; font-size: 0.84rem; color: var(--text-color); margin-bottom: 0.4rem; display: block;">Select File Attachment</label>
+                        <input type="file" name="file" required accept=".pdf,.png,.jpg,.jpeg,.csv,.json" class="form-control" style="padding: 0.55rem; border-radius: 10px; border: 1.5px solid var(--border-color); font-size: 0.88rem; width: 100%; background: var(--surface-color); color: var(--text-color);">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.75rem; font-weight: 700; border-radius: 10px;">
+                        Upload & Sync to Patient Records
+                    </button>
+                </form>
+            </div>
+
+            <!-- Ingested Files List -->
+            <div class="glass-panel" style="padding: 2rem; border-radius: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                    <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--heading-color); display: flex; align-items: center; gap: 0.5rem;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        Attached Patient Documents
+                    </h3>
+                    <span class="badge" style="background: rgba(37,99,235,0.12); color: var(--primary-color); font-weight: 600;">{{ patient_files|length if patient_files else 0 }} Files</span>
+                </div>
+
+                {% if patient_files %}
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: separate; border-spacing: 0 0.5rem;">
+                        <thead>
+                            <tr style="text-align: left; font-size: 0.78rem; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px;">
+                                <th style="padding: 0.5rem 0.75rem;">Document</th>
+                                <th style="padding: 0.5rem 0.75rem;">Category</th>
+                                <th style="padding: 0.5rem 0.75rem;">Date</th>
+                                <th style="padding: 0.5rem 0.75rem; text-align: right;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for file in patient_files %}
+                            <tr style="background: var(--surface-color); transition: background 0.2s ease;">
+                                <td style="padding: 0.85rem 0.75rem; border-top-left-radius: 10px; border-bottom-left-radius: 10px; border: 1px solid var(--border-color); border-right: none;">
+                                    <div style="font-weight: 700; font-size: 0.88rem; color: var(--heading-color); display: flex; align-items: center; gap: 0.4rem;">
+                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+                                         {{ file.filename }}
+                                     </div>
+                                     <div style="font-size: 0.72rem; color: var(--success-color); margin-top: 0.15rem; font-weight: 600;">✓ Synced with AI Digital Twin</div>
+                                 </td>
+                                 <td style="padding: 0.85rem 0.75rem; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+                                     <span class="badge" style="background: rgba(37,99,235,0.12); color: var(--primary-color); font-size: 0.75rem; font-weight: 600;">{{ file.file_type }}</span>
+                                 </td>
+                                 <td style="padding: 0.85rem 0.75rem; font-size: 0.82rem; color: var(--text-muted); border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+                                     {{ file.upload_date[:10] if file.upload_date else 'Recent' }}
+                                 </td>
+                                 <td style="padding: 0.85rem 0.75rem; text-align: right; border-top-right-radius: 10px; border-bottom-right-radius: 10px; border: 1px solid var(--border-color); border-left: none;">
+                                     <a href="{{ url_for('uploaded_file', filename=file.filename) }}" target="_blank" class="btn btn-outline" style="padding: 0.35rem 0.75rem; font-size: 0.78rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 0.3rem;">
+                                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                         View File
+                                     </a>
+                                 </td>
+                             </tr>
+                             {% endfor %}
+                         </tbody>
+                     </table>
+                 </div>
+                 {% else %}
+                 <div style="text-align: center; padding: 2.5rem 1rem; color: var(--text-muted); background: var(--surface-color); border-radius: 12px; border: 1px dashed var(--border-color);">
+                     <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.8" style="margin: 0 auto 0.75rem auto; display: block;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                     <div style="font-weight: 700; color: var(--heading-color); margin-bottom: 0.25rem;">No Diagnostic Reports Attached Yet</div>
+                     <div style="font-size: 0.84rem;">Use the upload form on the left to ingest diagnostic lab panels, ECGs, or imaging reports for this patient.</div>
+                 </div>
+                 {% endif %}
+             </div>
+         </div>
+ 
+         <!-- Diagnostic Biomarkers Lab Panels Summary -->
+         <div class="glass-panel" style="padding: 2rem; border-radius: 20px;">
+             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                 <div>
+                     <h3 style="margin: 0 0 0.25rem 0; font-size: 1.15rem; font-weight: 700; color: var(--heading-color); display: flex; align-items: center; gap: 0.5rem;">
+                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--success-color)" stroke-width="2.2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                         Clinical Biomarkers & Diagnostic Telemetry
+                     </h3>
+                     <p style="color: var(--text-muted); margin: 0; font-size: 0.86rem;">Multi-Agent parsed physiological readings compared against standard clinical thresholds.</p>
+                 </div>
+                 <span class="badge" style="background: rgba(16,185,129,0.12); color: var(--success-color); font-weight: 600;">Calibrated</span>
+             </div>
+ 
+             <div style="overflow-x: auto;">
+                 <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                     <thead>
+                         <tr style="background: var(--surface-color); border-bottom: 2px solid var(--border-color); color: var(--text-secondary); text-align: left; font-size: 0.8rem; text-transform: uppercase;">
+                             <th style="padding: 0.85rem 1rem;">Biomarker</th>
+                             <th style="padding: 0.85rem 1rem;">Latest Value</th>
+                             <th style="padding: 0.85rem 1rem;">Standard Reference</th>
+                             <th style="padding: 0.85rem 1rem;">Clinical Evaluation</th>
+                             <th style="padding: 0.85rem 1rem; text-align: right;">Trajectory</th>
+                         </tr>
+                     </thead>
+                     <tbody>
+                         <tr style="border-bottom: 1px solid var(--border-color);">
+                             <td style="padding: 0.9rem 1rem; font-weight: 700; color: var(--heading-color);">Total Cholesterol</td>
+                             <td style="padding: 0.9rem 1rem; font-weight: 600; color: #d97706;">210 mg/dL</td>
+                             <td style="padding: 0.9rem 1rem; color: var(--text-muted);">&lt; 200 mg/dL</td>
+                             <td style="padding: 0.9rem 1rem;"><span class="badge" style="background: rgba(245,158,11,0.15); color: #d97706; font-weight: 700;">Borderline High</span></td>
+                             <td style="padding: 0.9rem 1rem; text-align: right; color: var(--success-color); font-weight: 600;">↓ -5% (Improving)</td>
+                         </tr>
+                         <tr style="border-bottom: 1px solid var(--border-color);">
+                             <td style="padding: 0.9rem 1rem; font-weight: 700; color: var(--heading-color);">LDL Cholesterol</td>
+                             <td style="padding: 0.9rem 1rem; font-weight: 600; color: #d97706;">130 mg/dL</td>
+                             <td style="padding: 0.9rem 1rem; color: var(--text-muted);">&lt; 100 mg/dL</td>
+                             <td style="padding: 0.9rem 1rem;"><span class="badge" style="background: rgba(245,158,11,0.15); color: #d97706; font-weight: 700;">Moderate Elevation</span></td>
+                             <td style="padding: 0.9rem 1rem; text-align: right; color: var(--success-color); font-weight: 600;">↓ -8% (Post-Statin)</td>
+                         </tr>
+                         <tr style="border-bottom: 1px solid var(--border-color);">
+                             <td style="padding: 0.9rem 1rem; font-weight: 700; color: var(--heading-color);">HDL Cholesterol</td>
+                             <td style="padding: 0.9rem 1rem; font-weight: 600; color: var(--success-color);">48 mg/dL</td>
+                             <td style="padding: 0.9rem 1rem; color: var(--text-muted);">&gt; 40 mg/dL</td>
+                             <td style="padding: 0.9rem 1rem;"><span class="badge" style="background: rgba(16,185,129,0.12); color: var(--success-color); font-weight: 700;">Optimal</span></td>
+                             <td style="padding: 0.9rem 1rem; text-align: right; color: var(--success-color); font-weight: 600;">↑ Stable</td>
+                         </tr>
+                         <tr style="border-bottom: 1px solid var(--border-color);">
+                             <td style="padding: 0.9rem 1rem; font-weight: 700; color: var(--heading-color);">Fasting Blood Glucose</td>
+                             <td style="padding: 0.9rem 1rem; font-weight: 600; color: var(--success-color);">96 mg/dL</td>
+                             <td style="padding: 0.9rem 1rem; color: var(--text-muted);">70 - 99 mg/dL</td>
+                             <td style="padding: 0.9rem 1rem;"><span class="badge" style="background: rgba(16,185,129,0.12); color: var(--success-color); font-weight: 700;">Normal</span></td>
+                             <td style="padding: 0.9rem 1rem; text-align: right; color: var(--text-muted); font-weight: 600;">→ Steady</td>
+                         </tr>
+                         <tr style="border-bottom: 1px solid var(--border-color);">
+                             <td style="padding: 0.9rem 1rem; font-weight: 700; color: var(--heading-color);">Blood Pressure (Resting)</td>
+                             <td style="padding: 0.9rem 1rem; font-weight: 600; color: var(--primary-color);">128/84 mmHg</td>
+                             <td style="padding: 0.9rem 1rem; color: var(--text-muted);">&lt; 120/80 mmHg</td>
+                             <td style="padding: 0.9rem 1rem;"><span class="badge" style="background: rgba(37,99,235,0.12); color: var(--primary-color); font-weight: 700;">Stage 1 / Pre-HTN</span></td>
+                             <td style="padding: 0.9rem 1rem; text-align: right; color: var(--success-color); font-weight: 600;">↓ -4 mmHg (Controlled)</td>
+                         </tr>
+                     </tbody>
+                 </table>
+             </div>
+         </div>
+     </div>
+ 
+     <!-- ========================================== -->
+     <!-- TAB 3: MEDICATIONS & ALLERGIES             -->
+     <!-- ========================================== -->
+     <div id="tab-medications" class="clinical-tab-pane {% if active_tab == 'medications' %}active{% endif %}">
+         <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+             
+             <!-- Detailed Active Prescription Regimen -->
+             <div class="glass-panel" style="padding: 2rem; border-radius: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+                    <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--heading-color); display: flex; align-items: center; gap: 0.5rem;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2.2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                        Prescribed Medication Regimens
+                    </h3>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <a href="{{ url_for('doctor_patient_pharmacy', patient_id=patient_id) }}" class="btn btn-outline" style="padding: 0.35rem 0.75rem; font-size: 0.78rem; font-weight: 700; border-radius: 8px; display: inline-flex; align-items: center; gap: 0.35rem;">
+                            <span>💊</span> Full Prescribing Suite &rarr;
+                        </a>
+                        <span class="badge" style="background: rgba(16,185,129,0.12); color: var(--success-color); font-weight: 700;">Adherence: 94%</span>
+                    </div>
+                </div>
+ 
+                 <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+                     <!-- Medication Card 1 -->
+                     <div style="background: var(--surface-color); border: 1.5px solid var(--border-color); border-radius: 14px; padding: 1.25rem;">
+                         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                             <div>
+                                 <span style="font-weight: 800; font-size: 1.05rem; color: var(--heading-color);">Lisinopril</span>
+                                 <span style="font-size: 0.85rem; color: var(--primary-color); font-weight: 700; margin-left: 0.4rem;">10 mg &bull; Oral Tablet</span>
+                             </div>
+                             <span class="badge" style="background: rgba(16,185,129,0.12); color: var(--success-color); font-size: 0.75rem; font-weight: 700;">Active Daily</span>
+                         </div>
+                         <div style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                             <strong>Sig / Frequency:</strong> 1 tablet once daily in the morning with breakfast.
+                         </div>
+                         <div style="display: flex; gap: 1.5rem; font-size: 0.8rem; color: var(--text-muted);">
+                             <div><strong>Indication:</strong> Essential Pre-Hypertension</div>
+                             <div><strong>Refills:</strong> 3 remaining</div>
+                         </div>
+                     </div>
+ 
+                     <!-- Medication Card 2 -->
+                     <div style="background: var(--surface-color); border: 1.5px solid var(--border-color); border-radius: 14px; padding: 1.25rem;">
+                         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                             <div>
+                                 <span style="font-weight: 800; font-size: 1.05rem; color: var(--heading-color);">Atorvastatin Calcium</span>
+                                 <span style="font-size: 0.85rem; color: var(--primary-color); font-weight: 700; margin-left: 0.4rem;">20 mg &bull; Oral Tablet</span>
+                             </div>
+                             <span class="badge" style="background: rgba(16,185,129,0.12); color: var(--success-color); font-size: 0.75rem; font-weight: 700;">Active Nightly</span>
+                         </div>
+                         <div style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                             <strong>Sig / Frequency:</strong> 1 tablet once daily at bedtime.
+                         </div>
+                         <div style="display: flex; gap: 1.5rem; font-size: 0.8rem; color: var(--text-muted);">
+                             <div><strong>Indication:</strong> Hypercholesterolemia</div>
+                             <div><strong>Refills:</strong> 2 remaining</div>
+                         </div>
+                     </div>
+                 </div>
+ 
+                 <!-- AI Drug Interaction Check -->
+                 <div style="margin-top: 1.5rem; background: rgba(37,99,235,0.1); border: 1.5px solid rgba(37,99,235,0.3); border-radius: 12px; padding: 1.15rem; font-size: 0.86rem;">
+                     <div style="font-weight: 700; color: var(--primary-color); margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.4rem;">
+                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                         AI Multi-Agent Drug-Drug & Allergy Interaction Analysis
+                     </div>
+                     <div style="color: var(--text-color); line-height: 1.5;">
+                         Consensus check across <strong>Lisinopril (10mg)</strong> and <strong>Atorvastatin (20mg)</strong> shows <strong>zero severe cross-reactions</strong>. No interaction detected with registered Penicillin/Latex allergies. Renal elimination pathway is stable.
+                     </div>
+                 </div>
+             </div>
+ 
+             <!-- Allergies & Contraindications Detailed Registry -->
+             <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                 
+                 <div class="glass-panel" style="padding: 2rem; border-radius: 20px;">
+                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+                         <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--danger-color); display: flex; align-items: center; gap: 0.5rem;">
+                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2.2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                             Allergies Registry
+                         </h3>
+                         <span class="badge" style="background: rgba(239,68,68,0.12); color: var(--danger-color); font-size: 0.75rem; font-weight: 700;">2 Alert Items</span>
+                     </div>
+ 
+                     <div style="display: flex; flex-direction: column; gap: 1rem;">
+                         <div style="background: rgba(239,68,68,0.08); border: 1.5px solid rgba(239,68,68,0.25); border-radius: 12px; padding: 1rem;">
+                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+                                 <span style="font-weight: 800; font-size: 0.95rem; color: var(--danger-color);">Penicillin & Beta-Lactams</span>
+                                 <span class="badge" style="background: rgba(239,68,68,0.2); color: var(--danger-color); font-size: 0.72rem; font-weight: 800;">CRITICAL</span>
+                             </div>
+                             <div style="font-size: 0.84rem; color: var(--text-color);"><strong>Reaction:</strong> Anaphylaxis & acute generalized urticaria.</div>
+                             <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.25rem;">Do NOT prescribe Amoxicillin, Ampicillin, or related Cephalosporins without desensitization.</div>
+                         </div>
+ 
+                         <div style="background: rgba(245,158,11,0.08); border: 1.5px solid rgba(245,158,11,0.25); border-radius: 12px; padding: 1rem;">
+                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+                                 <span style="font-weight: 800; font-size: 0.95rem; color: #d97706;">Latex</span>
+                                 <span class="badge" style="background: rgba(245,158,11,0.2); color: #d97706; font-size: 0.72rem; font-weight: 800;">MODERATE</span>
+                             </div>
+                             <div style="font-size: 0.84rem; color: var(--text-color);"><strong>Reaction:</strong> Localized contact dermatitis and erythema.</div>
+                             <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.25rem;">Utilize synthetic nitrile gloves and non-latex medical equipment during examinations.</div>
+                         </div>
+                     </div>
+                 </div>
+ 
+                 <!-- Update Clinical Record Form -->
+                 <div class="glass-panel" style="padding: 2rem; border-radius: 20px;">
+                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                         <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700; color: var(--heading-color); display: flex; align-items: center; gap: 0.5rem;">
+                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                             Edit Clinical Profile Data
+                         </h3>
+                         {% if permissions and not permissions.can_edit_prescriptions %}
+                             <span class="badge" style="background: rgba(239,68,68,0.12); color: var(--danger-color); font-size: 0.72rem;">Read-Only Mode</span>
+                         {% endif %}
+                     </div>
+                     
+                     {% if permissions and not permissions.can_edit_prescriptions %}
+                     <div style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: 10px; padding: 0.75rem; font-size: 0.8rem; color: var(--danger-color); margin-bottom: 1rem;">
+                         🔒 <strong>Permission Engine Notice:</strong> In <em>{{ current_task_label }}</em> mode, clinical editing is restricted. Switch to <strong>Routine Care</strong> or trigger <strong>Emergency Access</strong> to edit.
+                     </div>
+                     {% endif %}
+                    
+                    <form method="post" action="{{ url_for('doctor_patient_detail', patient_id=patient_id) }}">
+                        <input type="hidden" name="action" value="update_clinical_profile">
+                        
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                            <label style="font-weight: 600; font-size: 0.82rem; color: #334155; margin-bottom: 0.35rem; display: block;">Allergies (Comma separated)</label>
+                            <input type="text" name="allergies" value="{{ raw_patient.allergies if raw_patient and raw_patient.allergies else (patient.allergies if patient and patient.allergies else 'Penicillin (Severe), Latex (Moderate)') }}" {{ 'disabled' if permissions and not permissions.can_edit_prescriptions else '' }} class="form-control" style="padding: 0.6rem 0.8rem; border-radius: 8px; border: 1.5px solid #cbd5e1; font-size: 0.88rem; width: 100%;">
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                            <label style="font-weight: 600; font-size: 0.82rem; color: #334155; margin-bottom: 0.35rem; display: block;">Current Active Medications</label>
+                            <input type="text" name="current_medications" value="{{ raw_patient.current_medications if raw_patient and raw_patient.current_medications else (patient.current_medications if patient and patient.current_medications else 'Lisinopril 10mg daily, Atorvastatin 20mg nightly') }}" {{ 'disabled' if permissions and not permissions.can_edit_prescriptions else '' }} class="form-control" style="padding: 0.6rem 0.8rem; border-radius: 8px; border: 1.5px solid #cbd5e1; font-size: 0.88rem; width: 100%;">
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 1.25rem;">
+                            <label style="font-weight: 600; font-size: 0.82rem; color: #334155; margin-bottom: 0.35rem; display: block;">Medical History Summary</label>
+                            <textarea name="medical_history" rows="2" {{ 'disabled' if permissions and not permissions.can_edit_prescriptions else '' }} class="form-control" style="padding: 0.6rem 0.8rem; border-radius: 8px; border: 1.5px solid #cbd5e1; font-size: 0.88rem; width: 100%;">{{ raw_patient.medical_history if raw_patient and raw_patient.medical_history else (patient.medical_history if patient and patient.medical_history else 'Pre-hypertension (under monitoring), appendectomy in 2021.') }}</textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" {{ 'disabled style="width:100%; padding:0.7rem; font-weight:700; border-radius:10px; opacity:0.6; cursor:not-allowed;"' if permissions and not permissions.can_edit_prescriptions else 'style="width: 100%; padding: 0.7rem; font-weight: 700; border-radius: 10px;"' }}>
+                            Save Profile Updates
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function switchClinicalTab(tabId, tabElement) {
+        // Hide all tab panes
+        document.querySelectorAll('.clinical-tab-pane').forEach(function(pane) {
+            pane.classList.remove('active');
+        });
+        
+        // Deactivate all tab headers
+        document.querySelectorAll('.clinical-tab').forEach(function(tab) {
+            tab.classList.remove('active');
+        });
+        
+        // Activate target pane and tab header
+        var targetPane = document.getElementById(tabId);
+        if (targetPane) {
+            targetPane.classList.add('active');
+        }
+        
+        if (tabElement) {
+            tabElement.classList.add('active');
+        }
+
+        // Update URL hash for seamless direct linking and browser history
+        if (tabId === 'tab-reports') {
+            window.location.hash = 'reports';
+        } else if (tabId === 'tab-medications') {
+            window.location.hash = 'medications';
+        } else {
+            window.location.hash = 'overview';
+        }
+    }
+
+    // Auto-select tab if URL has hash (e.g. #reports or #medications)
+    window.addEventListener('DOMContentLoaded', function() {
+        var hash = window.location.hash.replace('#', '');
+        if (hash === 'reports' || hash === 'lab') {
+            var btn = document.getElementById('btn-tab-reports');
+            if (btn) switchClinicalTab('tab-reports', btn);
+        } else if (hash === 'medications' || hash === 'allergies') {
+            var btn = document.getElementById('btn-tab-medications');
+            if (btn) switchClinicalTab('tab-medications', btn);
+        }
+    });
+</script>
+{% endblock %}
